@@ -1,32 +1,86 @@
-# React + TypeScript + Vite
+# Grupo Educare — Mapa Interativo de Atuação Municipal (Undime 2026)
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Aplicação web interativa e de alta fidelidade desenvolvida especificamente para exibição no estande do **Grupo Educare** durante o evento da **Undime** (União dos Dirigentes Municipais de Educação).
 
-Currently, two official plugins are available:
+Permite que a equipe de atendimento (Vitória e consultores pedagógicos) apresente a capilaridade, projetos educacionais, métricas de alfabetização/IDEB e materiais didáticos para gestores, secretários de educação e prefeitos municipais da Bahia e do Brasil.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## 🚀 Links e Acesso Imediato
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Deploy em Produção (Vercel):** `https://snappy-tungsten-c54262b.tmp.now`
+- **Link para Vincular à Conta Definitiva Vercel:** `https://vercel.com/claim-deployment?code=94668a77-c775-4326-b7d6-7216c5b91bcc` (sem custo de domínio)
 
-## Expanding the Oxlint configuration
+---
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+## 🌟 Funcionalidades Implementadas
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+1. **Identidade Visual Fiel:**
+   - Reprodução exata do slide/banner de referência: logo do Grupo Educare (com as folhas/páginas coloridas), azul marinho institucional, azul de destaque, laranja e verde.
+   - Card lateral com contador animado **"42 municípios alcançados na Bahia"** e os 3 pilares estratégicos:
+     - 📖 **Projetos educacionais:** Coleções pedagógicas, alfabetização e laboratórios maker.
+     - 👥 **Diálogo com gestores:** Formação continuada e assessoria técnica às secretarias.
+     - 🎯 **Propostas alinhadas:** Customização total para as necessidades de cada rede.
+
+2. **Mapa Interativo da Bahia:**
+   - Malha geográfica municipal oficial do IBGE com todos os 417 municípios baianos.
+   - Destaque em azul Educare para os 42 municípios parceiros estratégicos.
+   - Suporte a toque (tablet/iPad/touchscreen), zoom com botões (+/-) e pan (arrastar).
+   - Tooltip instantâneo ao passar o cursor ou tocar em qualquer cidade.
+
+3. **Visão de Expansão Nacional (Brasil):**
+   - Alternador rápido no topo: `[ Bahia ]` e `[ Nacional ]`.
+   - Mapeamento de 10 estados com presença ou projetos do Grupo Educare.
+
+4. **Gaveta de Detalhes do Município (Drawer Lateral):**
+   - Nome, mesorregião e data de início da parceria (ex: "Desde 2021").
+   - Indicadores de impacto: Escolas atendidas, alunos beneficiados, professores capacitados e evolução no IDEB / alfabetização.
+   - Depoimento real/recomendação de coordenadores pedagógicos.
+   - Botão direto de contato WhatsApp preenchido para o consultor do estande.
+
+5. **Modais Interativos de Conteúdo:**
+   - 📄 **Folder Pedagógico Interativo (PDF):** Visualizador de catálogo com navegação por páginas, matriz de competências da BNCC, conteúdos por bimestre e botão para download do PDF.
+   - 🎬 **Player de Vídeo Demonstrativo:** Apresentação prática dos projetos nas escolas, com controles de reprodução e depoimentos.
+
+6. **Filtros e Busca Inteligente:**
+   - Campo de pesquisa rápida por nome da cidade com auto-foco no mapa.
+   - Filtros por segmento: *Todos, Alfabetização, Robótica Maker, Socioemocional e Gestão*.
+
+---
+
+## 🛠️ Tecnologias Utilizadas
+
+- **Framework:** React 19 + TypeScript + Vite
+- **Estilização:** Tailwind CSS v4
+- **Projeção Geográfica:** D3-Geo (Mercator Projection otimizada para o polígono da Bahia e Brasil)
+- **Dados Cartográficos:** GeoJSON vetorial com malha oficial do IBGE
+- **Ícones:** Lucide React
+
+---
+
+## 💻 Execução Local
+
+```bash
+# 1. Instalar dependências
+npm install
+
+# 2. Rodar em modo de desenvolvimento
+npm run dev
+
+# 3. Gerar build de produção
+npm run build
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+---
+
+## 🌐 Publicação Permanente na Vercel
+
+Para vincular ao seu time ou conta permanente da Vercel com um subdomínio customizado (ex: `educare-bahia.vercel.app`):
+
+```bash
+# 1. Fazer login na Vercel CLI (gratuito)
+npx vercel login
+
+# 2. Publicar em produção
+npx vercel --prod
+```
