@@ -1,15 +1,14 @@
 import React, { useMemo } from 'react';
 import { BookOpen, Users, Target, Search, ChevronRight, X } from 'lucide-react';
 import {
-  BAHIA_MUNICIPALITIES_DATA,
   type MunicipalityCase,
   BRASIL_STATES_DATA,
   TOTAL_CONTRATOS_BRASIL,
   type StateCase,
 } from '../data/educareData';
+import { MUNICIPIOS_BAHIA, MUNICIPIOS_ATENDIDOS_BAHIA, municipioCase } from '../data/municipiosBahia';
 import { sounds } from '../utils/audio';
 
-const MUNICIPALITIES = Object.values(BAHIA_MUNICIPALITIES_DATA).sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
 const STATES = Object.values(BRASIL_STATES_DATA).sort((a, b) => b.contratos - a.contratos);
 
 const PILLARS = [
@@ -33,21 +32,6 @@ const PILLARS = [
   },
 ];
 
-const FILTERS = [
-  { id: 'all', label: 'Todos' },
-  { id: 'alfa', label: 'Alfabetização' },
-  { id: 'robotica', label: 'Robótica maker' },
-  { id: 'socio', label: 'Socioemocional' },
-  { id: 'gestao', label: 'Gestão e SAEB' },
-];
-
-const PROJECT_BY_FILTER: Record<string, string> = {
-  alfa: 'alfa-educa',
-  robotica: 'robotica-maker',
-  socio: 'socioemocional-viver',
-  gestao: 'gestao-redes',
-};
-
 /* ---------------------------------------------------------------
    Alcance + pilares (o "slide" da Educare)
    --------------------------------------------------------------- */
@@ -63,14 +47,14 @@ export const MetricsCard: React.FC<MetricsCardProps> = ({ viewMode, onOpenPropos
     <section className="shrink-0 bg-white rounded-3xl border border-slate-200 shadow-elevated overflow-hidden">
       <div className="flex items-end gap-3.5 px-5 xl:px-6 pt-4 pb-3 border-b border-slate-200">
         <span className="font-heading font-semibold text-orange-500 text-5xl 2xl:text-6xl leading-[0.85] tabular-nums">
-          {isBahia ? '42' : Object.keys(BRASIL_STATES_DATA).length}
+          {isBahia ? MUNICIPIOS_ATENDIDOS_BAHIA : Object.keys(BRASIL_STATES_DATA).length}
         </span>
         <span className="pb-0.5 min-w-0">
           <span className="block font-heading font-semibold text-xl xl:text-2xl text-blue-950 leading-tight">
-            {isBahia ? 'municípios alcançados na Bahia' : 'estados com contratos Educare'}
+            {isBahia ? 'municípios atendidos na Bahia' : 'estados com contratos Educare'}
           </span>
           <span className="block text-sm text-slate-600 tabular-nums">
-            Cerca de {TOTAL_CONTRATOS_BRASIL.toLocaleString('pt-BR')} contratos no Brasil, a maior parte na Bahia
+            Cerca de {TOTAL_CONTRATOS_BRASIL.toLocaleString('pt-BR')} contratos no Brasil. A Bahia é o estado com mais contratos.
           </span>
         </span>
       </div>
@@ -115,8 +99,6 @@ interface MunicipalitySearchProps {
   onSearchChange: (val: string) => void;
   onSelectMunicipality: (m: MunicipalityCase) => void;
   onSelectState: (s: StateCase) => void;
-  activeFilter: string;
-  onFilterChange: (filter: string) => void;
 }
 
 export const MunicipalitySearch: React.FC<MunicipalitySearchProps> = ({
@@ -125,20 +107,16 @@ export const MunicipalitySearch: React.FC<MunicipalitySearchProps> = ({
   onSearchChange,
   onSelectMunicipality,
   onSelectState,
-  activeFilter,
-  onFilterChange,
 }) => {
   const isBahia = viewMode === 'bahia';
   const term = searchTerm.trim().toLowerCase();
 
   const filteredMunicipalities = useMemo(
     () =>
-      MUNICIPALITIES.filter((m) => {
-        if (term && !m.name.toLowerCase().includes(term) && !m.region.toLowerCase().includes(term)) return false;
-        const project = PROJECT_BY_FILTER[activeFilter];
-        return !project || m.primaryProject === project;
-      }),
-    [term, activeFilter],
+      term
+        ? MUNICIPIOS_BAHIA.filter((m) => m.name.toLowerCase().includes(term) || m.region.toLowerCase().includes(term))
+        : MUNICIPIOS_BAHIA,
+    [term],
   );
 
   const filteredStates = useMemo(() => STATES.filter((s) => s.nome.toLowerCase().includes(term)), [term]);
@@ -178,35 +156,6 @@ export const MunicipalitySearch: React.FC<MunicipalitySearchProps> = ({
         )}
       </div>
 
-      {isBahia && (
-        <div
-          className="flex gap-1.5 overflow-x-auto no-scrollbar shrink-0 -mx-4 px-4 xl:-mx-5 xl:px-5 [@media(max-height:880px)]:lg:hidden"
-          role="group"
-          aria-label="Filtrar por projeto"
-        >
-          {FILTERS.map((f) => {
-            const active = activeFilter === f.id;
-            return (
-              <button
-                key={f.id}
-                aria-pressed={active}
-                onClick={() => {
-                  sounds.playTap();
-                  onFilterChange(f.id);
-                }}
-                className={`h-8 px-3 rounded-full text-[13px] font-medium shrink-0 transition-colors ${
-                  active
-                    ? 'bg-blue-950 text-white'
-                    : 'bg-white text-slate-700 border border-slate-200 hover:border-blue-300 hover:text-blue-950'
-                }`}
-              >
-                {f.label}
-              </button>
-            );
-          })}
-        </div>
-      )}
-
       {/* Lista com rolagem interna */}
       <ul className="max-h-72 lg:max-h-none lg:flex-1 lg:min-h-0 overflow-y-auto overscroll-contain -mx-2 px-1 space-y-0.5">
         {isBahia ? (
@@ -214,11 +163,11 @@ export const MunicipalitySearch: React.FC<MunicipalitySearchProps> = ({
             filteredMunicipalities.map((m) => (
               <li key={m.id}>
                 <button
-                  onClick={() => onSelectMunicipality(m)}
+                  onClick={() => onSelectMunicipality(municipioCase(m))}
                   className="w-full text-left px-3 py-2 rounded-xl hover:bg-blue-50 active:bg-blue-100 transition-colors flex items-center justify-between gap-3 group"
                 >
                   <span className="flex items-center gap-3 min-w-0">
-                    <span className="w-2.5 h-2.5 rounded-full bg-blue-600 ring-4 ring-blue-100 shrink-0" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-blue-600 ring-4 ring-blue-100 shrink-0" aria-hidden="true" />
                     <span className="min-w-0">
                       <span className="block text-[15px] font-semibold text-slate-900 truncate">{m.name}</span>
                       <span className="block text-xs text-slate-500 truncate">{m.region}</span>
@@ -230,7 +179,7 @@ export const MunicipalitySearch: React.FC<MunicipalitySearchProps> = ({
             ))
           ) : (
             <li className="text-center py-8 text-sm text-slate-500">
-              Nenhum município encontrado para “{searchTerm}”. Tente outro nome ou limpe os filtros.
+              Nenhum município encontrado para “{searchTerm}”. Tente outro nome.
             </li>
           )
         ) : filteredStates.length > 0 ? (
@@ -250,7 +199,8 @@ export const MunicipalitySearch: React.FC<MunicipalitySearchProps> = ({
                   <span>
                     <span className="block text-[15px] font-semibold text-slate-900">{s.nome}</span>
                     <span className="block text-xs text-slate-500 tabular-nums">
-                      cerca de {s.contratos.toLocaleString('pt-BR')} contratos
+                      {s.contratos >= 10 ? 'cerca de ' : ''}{s.contratos.toLocaleString('pt-BR')} {s.contratos === 1 ? 'contrato' : 'contratos'}
+                      {s.municipiosAtendidos && s.sigla !== 'BA' ? ` · ${s.municipiosAtendidos} ${s.municipiosAtendidos === 1 ? 'município' : 'municípios'}` : ''}
                     </span>
                   </span>
                 </span>

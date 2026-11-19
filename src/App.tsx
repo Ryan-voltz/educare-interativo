@@ -4,7 +4,7 @@ import { BahiaMap } from './components/BahiaMap';
 import { MetricsCard, MunicipalitySearch } from './components/MetricsCard';
 import { WhatsAppQR } from './components/WhatsAppQR';
 import { MunicipioPanel } from './components/MunicipioPanel';
-import { BAHIA_MUNICIPALITIES_DATA, type MunicipalityCase, type StateCase } from './data/educareData';
+import type { MunicipalityCase, StateCase } from './data/educareData';
 import { sounds } from './utils/audio';
 
 // Carregados só quando usados: deixam a abertura do app mais leve
@@ -13,15 +13,15 @@ const StateModal = lazy(() => import('./components/StateModal').then((m) => ({ d
 const ProposalModal = lazy(() => import('./components/ProposalModal').then((m) => ({ default: m.ProposalModal })));
 
 const STEPS_BAHIA = [
-  { title: 'Toque no município', text: 'Pontos azuis são redes parceiras' },
-  { title: 'Veja os contratos', text: 'Quantos fornecemos naquela rede' },
+  { title: 'Toque no município', text: 'Mais de 400 redes atendidas' },
+  { title: 'Contratos no Brasil', text: 'Veja por estado na aba Brasil' },
   { title: 'Fale com a Vitória', text: 'Leia o QR code do WhatsApp' },
 ];
 
 const STEPS_BRASIL = [
   { title: 'Toque no estado', text: 'Em azul, estados com contratos' },
   { title: 'Veja os contratos', text: 'Quantos fornecemos no estado' },
-  { title: 'Abra a Bahia', text: 'Os 42 municípios baianos' },
+  { title: 'Abra a Bahia', text: 'Mais de 400 municípios' },
 ];
 
 const MapFallback = () => (
@@ -31,7 +31,6 @@ const MapFallback = () => (
 export function App() {
   const [viewMode, setViewMode] = useState<'bahia' | 'brasil'>('bahia');
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeFilter, setActiveFilter] = useState('all');
 
   const [selectedMunicipality, setSelectedMunicipality] = useState<MunicipalityCase | null>(null);
   const [selectedState, setSelectedState] = useState<StateCase | null>(null);
@@ -128,8 +127,6 @@ export function App() {
                 onSearchChange={setSearchTerm}
                 onSelectMunicipality={selectMunicipality}
                 onSelectState={(s) => setSelectedState(s)}
-                activeFilter={activeFilter}
-                onFilterChange={setActiveFilter}
               />
             </div>
           </div>
@@ -160,7 +157,6 @@ export function App() {
       {selectedMunicipality && (
         <MunicipioPanel
           municipality={selectedMunicipality}
-          isPartner={!!BAHIA_MUNICIPALITIES_DATA[selectedMunicipality.id]}
           onClose={() => setSelectedMunicipality(null)}
         />
       )}
