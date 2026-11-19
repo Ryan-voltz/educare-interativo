@@ -16,7 +16,7 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (id.includes('node_modules/d3-geo')) return 'vendor-geo';
-          if (id.includes('node_modules/canvas-confetti') || id.includes('node_modules/lucide-react')) return 'vendor-ui';
+          if (id.includes('node_modules/lucide-react')) return 'vendor-ui';
           if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) return 'vendor-react';
         },
       },

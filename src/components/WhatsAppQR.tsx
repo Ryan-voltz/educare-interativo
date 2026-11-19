@@ -52,6 +52,10 @@ const QRImage: React.FC<{ size: number; className?: string }> = ({ size, classNa
 
 export const WhatsAppQR: React.FC = () => {
   const [expanded, setExpanded] = useState(false);
+  // Em telas baixas (ex.: 1366×768) o QR fica um pouco menor para tudo caber
+  const [qrSize] = useState(() =>
+    typeof window !== 'undefined' && window.innerHeight < 880 && window.innerWidth >= 1024 ? 100 : 120,
+  );
 
   useEffect(() => {
     if (!expanded) return;
@@ -64,51 +68,50 @@ export const WhatsAppQR: React.FC = () => {
     <>
       <section
         aria-labelledby="qr-vitoria-titulo"
-        className="relative overflow-hidden rounded-3xl border border-blue-200 shadow-elevated bg-gradient-to-br from-sky-50 via-white to-amber-50"
+        className="shrink-0 relative overflow-hidden rounded-3xl border border-blue-200 shadow-elevated bg-gradient-to-br from-sky-50 via-white to-amber-50"
       >
-        <ToyPattern className="opacity-70" />
-        <div className="relative p-5">
-          <div className="flex items-center justify-between gap-3">
-            <img src="/brand/atacadoge-logo.png" alt="Atacado GE" className="h-12 w-auto" draggable={false} />
-            <span className="text-xs font-semibold text-blue-950 bg-amber-400 rounded-full px-3 py-1">
-              Atendimento PDDE à escola
-            </span>
-          </div>
-
-          <div className="mt-4 flex items-center gap-5">
+        <ToyPattern className="opacity-60" />
+        <div className="relative p-4 [@media(max-height:880px)]:lg:py-3 xl:p-5 flex items-center gap-4 xl:gap-5">
+          <>
             <button
               type="button"
               onClick={() => {
                 sounds.playTap();
                 setExpanded(true);
               }}
-              className="group relative shrink-0 rounded-2xl bg-white p-2.5 shadow-elevated ring-1 ring-blue-200 hover:ring-blue-400 transition"
+              className="group relative shrink-0 rounded-2xl bg-white p-2 shadow-elevated ring-1 ring-blue-200 hover:ring-blue-400 transition"
               aria-label="Ampliar QR code"
             >
-              <QRImage size={128} />
+              <QRImage size={qrSize} />
               <span className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-blue-950 text-white flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
                 <Maximize2 className="w-4 h-4" />
               </span>
             </button>
 
-            <div className="min-w-0">
-              <h2 id="qr-vitoria-titulo" className="text-xl text-blue-950 leading-tight">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <img src="/brand/atacadoge-logo.png" alt="Atacado GE" className="h-9 w-auto" draggable={false} />
+                <span className="text-xs font-semibold text-blue-950 bg-amber-400 rounded-full px-2.5 py-1 leading-tight [@media(max-height:880px)]:lg:hidden">
+                  Atendimento PDDE à escola
+                </span>
+              </div>
+              <h2 id="qr-vitoria-titulo" className="mt-2 [@media(max-height:880px)]:lg:mt-1 text-lg xl:text-xl text-blue-950 leading-tight">
                 Recurso PDDE
               </h2>
-              <p className="text-[15px] text-slate-700 mt-1 leading-snug">
+              <p className="text-[13px] xl:text-sm text-slate-700 mt-0.5 leading-snug">
                 Para utilizar o recurso PDDE, fale com a <strong className="font-semibold text-blue-950">{VITORIA_NOME}</strong> do Atacado GE.
               </p>
               <a
                 href={whatsappLink()}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-2.5 inline-flex items-center gap-1.5 text-sm font-semibold text-emerald-700 hover:text-emerald-800 tabular-nums"
+                className="mt-1.5 inline-flex items-center gap-1.5 text-sm font-semibold text-emerald-700 hover:text-emerald-800 tabular-nums whitespace-nowrap"
               >
                 <MessageCircle className="w-4 h-4" />
                 {telefoneFormatado()}
               </a>
             </div>
-          </div>
+          </>
         </div>
       </section>
 

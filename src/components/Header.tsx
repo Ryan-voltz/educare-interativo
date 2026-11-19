@@ -36,7 +36,7 @@ export const Header: React.FC<HeaderProps> = ({ viewMode, onViewModeChange, onOp
 
   return (
     <header className="w-full bg-white border-b border-slate-200 sticky top-0 z-30">
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-2 sm:gap-4">
+      <div className="max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 lg:h-16 2xl:h-20 flex items-center justify-between gap-2 sm:gap-4">
         <button
           type="button"
           onClick={() => {
@@ -49,7 +49,7 @@ export const Header: React.FC<HeaderProps> = ({ viewMode, onViewModeChange, onOp
           <img
             src="/brand/logo-grupo-educare.png"
             alt="Grupo Educare Editora"
-            className="h-11 sm:h-[60px] w-auto"
+            className="h-11 sm:h-[60px] lg:h-12 2xl:h-[60px] w-auto"
             draggable={false}
           />
         </button>

@@ -109,7 +109,7 @@ export const BrasilMap: React.FC<BrasilMapProps> = ({
   };
 
   return (
-    <div className="relative w-full h-[650px] lg:h-[750px] bg-gradient-to-br from-slate-50 via-white to-sky-50/70 rounded-3xl border border-slate-200/90 shadow-elevated overflow-hidden select-none flex flex-col">
+    <div className="relative w-full h-full bg-white rounded-3xl border border-slate-200 shadow-elevated overflow-hidden select-none flex flex-col">
       {/* Map Controls */}
       <div className="absolute top-4 left-4 z-20 flex flex-col gap-1.5 bg-white/95 backdrop-blur-md p-1.5 rounded-2xl shadow-md border border-slate-200">
         <button
@@ -148,7 +148,7 @@ export const BrasilMap: React.FC<BrasilMapProps> = ({
       </div>
 
       {/* Interactive SVG */}
-      <div className="flex-1 w-full h-full relative cursor-grab active:cursor-grabbing">
+      <div className="flex-1 min-h-0 w-full relative cursor-grab active:cursor-grabbing">
         <svg
           viewBox={`0 0 ${width} ${height}`}
           className="w-full h-full"
