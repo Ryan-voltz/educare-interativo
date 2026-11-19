@@ -17,11 +17,11 @@ export const StateModal: React.FC<StateModalProps> = ({ state, onClose, onDrillD
         {/* Top Header */}
         <div className="px-6 py-5 bg-gradient-to-r from-blue-900 to-indigo-900 text-white flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-white/10 text-amber-400 font-black text-xl flex items-center justify-center backdrop-blur-md border border-white/20">
+            <div className="w-12 h-12 rounded-2xl bg-white/10 text-amber-400 font-semibold text-xl flex items-center justify-center backdrop-blur-md border border-white/20">
               {state.sigla}
             </div>
             <div>
-              <div className="text-xs text-blue-200 font-semibold uppercase">
+              <div className="text-xs text-blue-200 font-semibold">
                 Região {state.regiao}
               </div>
               <h3 className="text-xl font-bold text-white">{state.nome}</h3>
@@ -40,20 +40,20 @@ export const StateModal: React.FC<StateModalProps> = ({ state, onClose, onDrillD
           <div className="grid grid-cols-2 gap-3">
             <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-center">
               <School className="w-5 h-5 text-blue-600 mx-auto mb-1" />
-              <div className="text-2xl font-black text-slate-900">
+              <div className="text-2xl font-semibold text-slate-900">
                 {state.municipiosAtendidos}
               </div>
-              <div className="text-xs font-semibold text-slate-500 uppercase">
+              <div className="text-xs font-semibold text-slate-500">
                 Municípios Atendidos
               </div>
             </div>
 
             <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-center">
               <Users className="w-5 h-5 text-emerald-600 mx-auto mb-1" />
-              <div className="text-2xl font-black text-slate-900">
+              <div className="text-2xl font-semibold text-slate-900">
                 {state.alunosImpactados.toLocaleString()}
               </div>
-              <div className="text-xs font-semibold text-slate-500 uppercase">
+              <div className="text-xs font-semibold text-slate-500">
                 Alunos Beneficiados
               </div>
             </div>
@@ -62,7 +62,7 @@ export const StateModal: React.FC<StateModalProps> = ({ state, onClose, onDrillD
           <div className="p-4 bg-sky-50/70 border border-sky-100 rounded-2xl flex items-start gap-3">
             <Award className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
             <div>
-              <div className="text-xs font-bold text-blue-900 uppercase">Atuação Regional</div>
+              <div className="text-xs font-bold text-blue-900">Atuação Regional</div>
               <p className="text-xs text-slate-700 mt-1 leading-relaxed">{state.destaque}</p>
             </div>
           </div>

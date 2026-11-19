@@ -3,23 +3,33 @@ import { Header } from './components/Header';
 import { BahiaMap } from './components/BahiaMap';
 import { BrasilMap } from './components/BrasilMap';
 import { MetricsCard } from './components/MetricsCard';
-import { AudioDemandModal } from './components/AudioDemandModal';
+import { WhatsAppQR } from './components/WhatsAppQR';
+import { MunicipioPanel } from './components/MunicipioPanel';
 import { StateModal } from './components/StateModal';
 import { ProposalModal } from './components/ProposalModal';
-import type { MunicipalityCase, StateCase } from './data/educareData';
-import { Sparkles, MapPin } from 'lucide-react';
+import { BAHIA_MUNICIPALITIES_DATA, type MunicipalityCase, type StateCase } from './data/educareData';
 import { sounds } from './utils/audio';
+
+const STEPS_BAHIA = [
+  { title: 'Toque no município', text: 'Os pontos azuis são as redes parceiras.' },
+  { title: 'Veja os contratos', text: 'Quantos contratos fornecemos naquela rede.' },
+  { title: 'Fale com a Vitória', text: 'Leia o QR code e converse pelo WhatsApp.' },
+];
+
+const STEPS_BRASIL = [
+  { title: 'Toque no estado', text: 'Os estados em azul têm projetos ativos.' },
+  { title: 'Veja os números', text: 'Municípios, escolas e alunos atendidos.' },
+  { title: 'Abra a Bahia', text: 'Navegue até os 42 municípios baianos.' },
+];
 
 export function App() {
   const [viewMode, setViewMode] = useState<'bahia' | 'brasil'>('bahia');
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
 
-  // Selected entities
   const [selectedMunicipality, setSelectedMunicipality] = useState<MunicipalityCase | null>(null);
   const [selectedState, setSelectedState] = useState<StateCase | null>(null);
 
-  // Proposal Modal
   const [isProposalOpen, setIsProposalOpen] = useState(false);
   const [proposalMunicipality, setProposalMunicipality] = useState<MunicipalityCase | null>(null);
 
@@ -29,52 +39,55 @@ export function App() {
     setIsProposalOpen(true);
   };
 
+  const steps = viewMode === 'bahia' ? STEPS_BAHIA : STEPS_BRASIL;
+
   return (
-    <div className="min-h-screen bg-slate-100/70 flex flex-col font-sans text-slate-800">
-      {/* Top Navigation */}
+    <div className="min-h-screen bg-cream flex flex-col text-slate-900">
       <Header
         viewMode={viewMode}
         onViewModeChange={setViewMode}
         onOpenProposal={() => handleOpenProposal(null)}
       />
 
-      {/* Main Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-6 flex flex-col gap-5">
-        {/* Top Interactive Announcement Banner */}
-        <div className="bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white px-4 sm:px-6 py-3.5 rounded-3xl shadow-elevated flex flex-col sm:flex-row items-center justify-between gap-3 text-xs sm:text-sm border border-blue-800/60">
-          <div className="flex items-center gap-3">
-            <span className="p-2 bg-orange-500 text-white rounded-xl shadow-xs shrink-0">
-              <Sparkles className="w-4 h-4" />
-            </span>
-            <span>
-              <strong className="text-orange-400">Undime Bahia 2026:</strong> Toque no município no mapa para abrir na hora o <strong className="text-white">Folder dos Livros/Materiais</strong>, o <strong className="text-white">Vídeo do Case</strong> e a <strong className="text-white">Data de Fornecimento</strong>.
-            </span>
+      {/* Faixa institucional: título da tela e como usar */}
+      <section className="band-deep">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-7 sm:py-9 grid gap-6 lg:grid-cols-12 lg:items-end">
+          <div className="lg:col-span-5">
+            <h1 className="text-3xl sm:text-4xl lg:text-[2.75rem] leading-[1.08] text-white text-balance">
+              {viewMode === 'bahia'
+                ? 'Presença nos municípios baianos'
+                : 'Presença no território nacional'}
+            </h1>
+            <svg aria-hidden="true" viewBox="0 0 220 12" className="mt-2 w-48 h-3 text-orange-400" fill="none">
+              <path d="M2 9C60 2 150 1 218 6" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
+            </svg>
+            <p className="mt-3 text-base text-blue-100 max-w-[46ch]">
+              Soluções pedagógicas estruturadas e formação contínua para as redes municipais de ensino.
+            </p>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              onClick={() => handleOpenProposal(null)}
-              className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold backdrop-blur-md transition-all border border-white/20 active:scale-95"
-            >
-              Simulador para Secretários
-            </button>
-          </div>
+          <ol className="lg:col-span-7 grid sm:grid-cols-3 gap-2.5" aria-label="Como usar">
+            {steps.map((s, i) => (
+              <li
+                key={s.title}
+                className="flex gap-3 items-start rounded-2xl bg-white/[0.07] ring-1 ring-white/15 px-4 py-3.5"
+              >
+                <span className="shrink-0 w-8 h-8 rounded-full bg-amber-400 text-blue-950 font-heading font-semibold text-base flex items-center justify-center tabular-nums">
+                  {i + 1}
+                </span>
+                <span className="min-w-0">
+                  <span className="block font-semibold text-white text-[15px] leading-tight">{s.title}</span>
+                  <span className="block text-[13px] text-blue-100 leading-snug mt-0.5">{s.text}</span>
+                </span>
+              </li>
+            ))}
+          </ol>
         </div>
+      </section>
 
-        {/* 2-Column Split: Interactive Map & Live Metrics */}
+      <main className="flex-1 max-w-[1400px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          {/* Left Column: Interactive Map (7 cols) */}
-          <div className="lg:col-span-7 flex flex-col gap-2.5">
-            <div className="flex items-center justify-between px-2">
-              <div className="text-xs font-black text-slate-600 uppercase tracking-widest flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5 text-blue-700" />
-                <span>{viewMode === 'bahia' ? 'Território da Bahia • Malha Oficial IBGE' : 'Presença Nacional • Brasil'}</span>
-              </div>
-              <div className="text-xs text-slate-500 font-medium">
-                {viewMode === 'bahia' ? 'Toque em qualquer município para abrir o material' : '10 estados parceiros'}
-              </div>
-            </div>
-
+          <div className="lg:col-span-7 xl:col-span-8 lg:sticky lg:top-24">
             {viewMode === 'bahia' ? (
               <BahiaMap
                 selectedMunicipalityId={selectedMunicipality ? selectedMunicipality.id : null}
@@ -96,8 +109,7 @@ export function App() {
             )}
           </div>
 
-          {/* Right Column: Slide Metrics Card & Instant Search (5 cols) */}
-          <div className="lg:col-span-5">
+          <aside className="lg:col-span-5 xl:col-span-4 flex flex-col gap-6">
             <MetricsCard
               viewMode={viewMode}
               searchTerm={searchTerm}
@@ -110,41 +122,38 @@ export function App() {
               activeFilter={activeFilter}
               onFilterChange={setActiveFilter}
               onOpenProposal={() => handleOpenProposal(null)}
+              qrSlot={<WhatsAppQR />}
             />
-          </div>
+          </aside>
         </div>
       </main>
 
-      {/* Modern Footer with Organic Educare Brand Arc */}
-      <footer className="mt-auto bg-white border-t border-slate-200/90 pt-6 pb-8 relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-64 h-2.5 bg-gradient-to-r from-blue-900 via-blue-600 to-sky-400 rounded-r-full"></div>
-        <div className="absolute top-0 right-0 w-64 h-2.5 bg-gradient-to-l from-emerald-600 via-green-500 to-lime-400 rounded-l-full"></div>
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-          <div className="flex items-center gap-2.5">
-            <div className="w-2.5 h-2.5 rounded-full bg-blue-700"></div>
-            <span className="font-extrabold text-blue-950 text-sm">Grupo Educare</span>
-            <span>• Soluções Didáticas e Consultoria Pedagógica para Redes Municipais de Ensino</span>
+      <footer className="mt-auto bg-white border-t border-slate-200 relative">
+        <div aria-hidden="true" className="absolute inset-x-0 top-0 h-1.5 flex">
+          <span className="flex-[3] bg-blue-600" />
+          <span className="flex-[2] bg-orange-500" />
+          <span className="flex-1 bg-emerald-500" />
+        </div>
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-slate-600">
+          <div className="flex items-center gap-4">
+            <img src="/brand/educare-simbolo.png" alt="" className="h-9 w-auto" draggable={false} />
+            <span>
+              <strong className="font-semibold text-blue-950">Grupo Educare Editora</strong>
+              <span className="hidden md:inline"> · Soluções didáticas e consultoria pedagógica para redes municipais</span>
+            </span>
           </div>
-
-          <div className="flex items-center gap-3 text-slate-400 text-xs">
-            <span className="font-bold text-slate-600">Undime Bahia 2026</span>
-            <span>•</span>
-            <span>Aplicação Interativa para Estande</span>
-          </div>
+          <span className="text-slate-500">Undime Bahia 2026 · Aplicação do estande</span>
         </div>
       </footer>
 
-      {/* Direct Audio-Demanded Modal: Folder + Video + Date of Supply */}
       {selectedMunicipality && (
-        <AudioDemandModal
+        <MunicipioPanel
           municipality={selectedMunicipality}
+          isPartner={!!BAHIA_MUNICIPALITIES_DATA[selectedMunicipality.id]}
           onClose={() => setSelectedMunicipality(null)}
-          onOpenProposal={(m) => handleOpenProposal(m)}
         />
       )}
 
-      {/* State Modal (Brasil Mode) */}
       <StateModal
         state={selectedState}
         onClose={() => setSelectedState(null)}
@@ -154,7 +163,6 @@ export function App() {
         }}
       />
 
-      {/* Real-time Proposal Configurator Modal */}
       {isProposalOpen && (
         <ProposalModal
           initialMunicipality={proposalMunicipality}

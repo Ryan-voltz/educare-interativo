@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { type MunicipalityCase, CATALOG_PROJECTS } from '../data/educareData';
 import { sounds } from '../utils/audio';
+import { VITORIA_WHATSAPP } from '../config/contato';
 
 interface MunicipalityDrawerProps {
   municipality: MunicipalityCase | null;
@@ -47,11 +48,11 @@ export const MunicipalityDrawer: React.FC<MunicipalityDrawerProps> = ({
         <div className="px-6 py-6 bg-gradient-to-br from-blue-950 via-blue-900 to-indigo-950 text-white relative">
           <div className="flex items-start justify-between">
             <div>
-              <div className="flex items-center gap-2 text-xs font-bold text-amber-400 uppercase tracking-widest">
+              <div className="flex items-center gap-2 text-xs font-bold text-amber-400">
                 <MapPin className="w-4 h-4 text-orange-400" />
                 <span>{municipality.region}</span>
               </div>
-              <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white mt-1">
+              <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-white mt-1">
                 {municipality.name}
               </h2>
               <div className="flex items-center gap-2 mt-2">
@@ -80,28 +81,28 @@ export const MunicipalityDrawer: React.FC<MunicipalityDrawerProps> = ({
           <div className="grid grid-cols-3 gap-3">
             <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-center">
               <School className="w-5 h-5 text-blue-700 mx-auto mb-1.5" />
-              <div className="text-xl font-black text-slate-900">
+              <div className="text-xl font-semibold text-slate-900">
                 {municipality.schoolsCount > 0 ? municipality.schoolsCount : '15+'}
               </div>
-              <div className="text-[10px] font-bold text-slate-500 uppercase mt-0.5">Escolas</div>
+              <div className="text-xs font-bold text-slate-500 mt-0.5">Escolas</div>
             </div>
 
             <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-center">
               <Users className="w-5 h-5 text-emerald-600 mx-auto mb-1.5" />
-              <div className="text-xl font-black text-slate-900">
+              <div className="text-xl font-semibold text-slate-900">
                 {municipality.studentsImpacted > 0
                   ? `${(municipality.studentsImpacted / 1000).toFixed(1)}k`
                   : '5k+'}
               </div>
-              <div className="text-[10px] font-bold text-slate-500 uppercase mt-0.5">Alunos</div>
+              <div className="text-xs font-bold text-slate-500 mt-0.5">Alunos</div>
             </div>
 
             <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-center">
               <GraduationCap className="w-5 h-5 text-amber-600 mx-auto mb-1.5" />
-              <div className="text-xl font-black text-slate-900">
+              <div className="text-xl font-semibold text-slate-900">
                 {municipality.teachersTrained > 0 ? municipality.teachersTrained : '200+'}
               </div>
-              <div className="text-[10px] font-bold text-slate-500 uppercase mt-0.5">Educadores</div>
+              <div className="text-xs font-bold text-slate-500 mt-0.5">Educadores</div>
             </div>
           </div>
 
@@ -109,17 +110,17 @@ export const MunicipalityDrawer: React.FC<MunicipalityDrawerProps> = ({
           {municipality.metrics && (
             <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/80 rounded-2xl flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-amber-500 text-white rounded-xl shadow-xs">
+                <div className="p-2.5 bg-amber-400 text-blue-950 rounded-xl shadow-xs">
                   <TrendingUp className="w-5 h-5" />
                 </div>
                 <div>
-                  <div className="text-xs font-bold text-amber-900 uppercase">Resultado Comprovado</div>
-                  <div className="text-sm font-black text-slate-800">
+                  <div className="text-xs font-bold text-amber-900">Resultado Comprovado</div>
+                  <div className="text-sm font-semibold text-slate-800">
                     {municipality.metrics.literacyRate || municipality.metrics.idebGrowth || 'Avanço Estruturado'}
                   </div>
                 </div>
               </div>
-              <div className="text-xs font-black text-amber-800 bg-white px-2.5 py-1 rounded-lg border border-amber-200 shadow-2xs">
+              <div className="text-xs font-semibold text-amber-800 bg-white px-2.5 py-1 rounded-lg border border-amber-200 shadow-2xs">
                 {municipality.metrics.idebGrowth || '100% BNCC'}
               </div>
             </div>
@@ -128,7 +129,7 @@ export const MunicipalityDrawer: React.FC<MunicipalityDrawerProps> = ({
           {/* Primary Pedagogical Project */}
           <div className="border border-slate-200 rounded-2xl p-5 bg-white shadow-xs space-y-3.5">
             <div className="flex items-center justify-between">
-              <span className="px-3 py-1 rounded-full text-xs font-black bg-blue-100 text-blue-900">
+              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-900">
                 {primaryProject.tag}
               </span>
               <span className="text-xs font-bold text-slate-400">
@@ -136,7 +137,7 @@ export const MunicipalityDrawer: React.FC<MunicipalityDrawerProps> = ({
               </span>
             </div>
 
-            <h3 className="text-base font-black text-slate-900">
+            <h3 className="text-base font-semibold text-slate-900">
               {primaryProject.title}
             </h3>
 
@@ -205,7 +206,7 @@ export const MunicipalityDrawer: React.FC<MunicipalityDrawerProps> = ({
               sounds.playTap();
               onOpenProposal(municipality);
             }}
-            className="w-full py-3 px-4 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs uppercase rounded-xl flex items-center justify-center gap-2 shadow-xs transition-all active:scale-95"
+            className="w-full py-3 px-4 btn-yellow font-semibold text-xs rounded-xl flex items-center justify-center gap-2 shadow-xs transition-all active:scale-95"
           >
             <Sparkles className="w-4 h-4 text-slate-950" />
             <span>Simular Proposta para {municipality.name}</span>
@@ -215,16 +216,16 @@ export const MunicipalityDrawer: React.FC<MunicipalityDrawerProps> = ({
           <div className="p-4 bg-gradient-to-br from-emerald-700 to-teal-800 text-white rounded-2xl shadow-md space-y-2.5">
             <div className="flex items-center gap-2">
               <MessageCircle className="w-5 h-5 text-emerald-200" />
-              <div className="font-extrabold text-sm">Plantão Técnico no Estande Undime</div>
+              <div className="font-semibold text-sm">Plantão Técnico no Estande Undime</div>
             </div>
             <p className="text-xs text-emerald-100 leading-relaxed">
               Deseja alinhar detalhes ou agendar visita de nossa consultoria pedagógica em {municipality.name}?
             </p>
             <a
-              href={`https://wa.me/5571999999999?text=${whatsappMessage}`}
+              href={`https://wa.me/${VITORIA_WHATSAPP}?text=${whatsappMessage}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 w-full py-2.5 bg-white text-emerald-900 hover:bg-emerald-50 rounded-xl font-black text-xs transition-all shadow-xs active:scale-95"
+              className="flex items-center justify-center gap-2 w-full py-2.5 bg-white text-emerald-900 hover:bg-emerald-50 rounded-xl font-semibold text-xs transition-all shadow-xs active:scale-95"
             >
               <span>Conversar com a Equipe no WhatsApp</span>
             </a>

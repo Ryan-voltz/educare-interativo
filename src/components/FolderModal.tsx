@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { type MunicipalityCase, CATALOG_PROJECTS } from '../data/educareData';
 import { sounds } from '../utils/audio';
+import { VITORIA_WHATSAPP } from '../config/contato';
 
 interface FolderModalProps {
   municipality: MunicipalityCase;
@@ -46,7 +47,7 @@ export const FolderModal: React.FC<FolderModalProps> = ({ municipality, onClose 
         <div className="space-y-4">
           <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-blue-950 via-blue-900 to-indigo-950 text-white p-6 shadow-md border border-blue-800">
             <div className="flex items-center justify-between">
-              <span className="px-3 py-1 bg-orange-500 text-white rounded-full text-xs font-black uppercase tracking-wider">
+              <span className="px-3 py-1 bg-orange-500 text-white rounded-full text-xs font-semibold">
                 Edição Oficial 2026
               </span>
               <span className="text-xs text-blue-200 font-bold">
@@ -55,10 +56,10 @@ export const FolderModal: React.FC<FolderModalProps> = ({ municipality, onClose 
             </div>
 
             <div className="mt-4">
-              <div className="text-xs text-amber-300 font-bold uppercase tracking-widest">
+              <div className="text-xs text-amber-300 font-bold">
                 {currentProject.tag}
               </div>
-              <h3 className="text-xl sm:text-2xl font-black text-white mt-1">
+              <h3 className="text-xl sm:text-2xl font-semibold text-white mt-1">
                 {currentProject.title}
               </h3>
               <p className="text-xs text-blue-100 mt-2 leading-relaxed">
@@ -79,7 +80,7 @@ export const FolderModal: React.FC<FolderModalProps> = ({ municipality, onClose 
           </div>
 
           <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl">
-            <div className="text-xs font-bold text-slate-800 uppercase mb-2">
+            <div className="text-xs font-bold text-slate-800 mb-2">
               Diferenciais Reconhecidos pelas Redes Municipais:
             </div>
             <div className="space-y-2">
@@ -106,10 +107,10 @@ export const FolderModal: React.FC<FolderModalProps> = ({ municipality, onClose 
             {/* Left Page: Story & Reading */}
             <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs space-y-3">
               <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                <span className="text-[10px] font-bold text-orange-600 uppercase">Unidade 2 • Brincadeiras da Nossa Terra</span>
-                <span className="text-[10px] font-bold text-slate-400">Pág. 24</span>
+                <span className="text-xs font-bold text-orange-600">Unidade 2 • Brincadeiras da Nossa Terra</span>
+                <span className="text-xs font-bold text-slate-400">Pág. 24</span>
               </div>
-              <h5 className="font-black text-slate-900 text-sm">
+              <h5 className="font-semibold text-slate-900 text-sm">
                 Cantiga: "Peixe Vivo no Rio Paraguaçu"
               </h5>
               <div className="bg-sky-50/70 p-3 rounded-lg border border-sky-100 text-xs italic text-slate-700 leading-relaxed font-serif">
@@ -127,10 +128,10 @@ export const FolderModal: React.FC<FolderModalProps> = ({ municipality, onClose 
             {/* Right Page: Phonics and Writing Practice */}
             <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs space-y-3">
               <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                <span className="text-[10px] font-bold text-blue-700 uppercase">Fluência & Fonemas</span>
-                <span className="text-[10px] font-bold text-slate-400">Pág. 25</span>
+                <span className="text-xs font-bold text-blue-700">Fluência & Fonemas</span>
+                <span className="text-xs font-bold text-slate-400">Pág. 25</span>
               </div>
-              <h5 className="font-black text-slate-900 text-sm">
+              <h5 className="font-semibold text-slate-900 text-sm">
                 Hora de Ler e Escrever
               </h5>
               <div className="space-y-2 text-xs">
@@ -147,7 +148,7 @@ export const FolderModal: React.FC<FolderModalProps> = ({ municipality, onClose 
                   <span className="font-mono text-[11px] text-blue-700 bg-blue-100 px-2 py-0.5 rounded">Á - G - U - A</span>
                 </div>
               </div>
-              <div className="p-2 bg-emerald-50 rounded-lg text-[10px] text-emerald-800 font-semibold border border-emerald-100">
+              <div className="p-2 bg-emerald-50 rounded-lg text-xs text-emerald-800 font-semibold border border-emerald-100">
                 ★ Caixa de Letras Móveis: forme a palavra com seus colegas na sala!
               </div>
             </div>
@@ -164,8 +165,8 @@ export const FolderModal: React.FC<FolderModalProps> = ({ municipality, onClose 
         <div className="space-y-4">
           <div className="p-4 bg-sky-50 border border-sky-200 rounded-2xl">
             <div className="flex items-center justify-between">
-              <h5 className="font-black text-blue-950 text-sm">Orientações para o Professor Alfabetizador</h5>
-              <span className="px-2.5 py-0.5 rounded bg-blue-200/60 text-blue-950 font-bold text-[10px]">
+              <h5 className="font-semibold text-blue-950 text-sm">Orientações para o Professor Alfabetizador</h5>
+              <span className="px-2.5 py-0.5 rounded bg-blue-200/60 text-blue-950 font-bold text-xs">
                 BNCC: EF01LP02, EF01LP07
               </span>
             </div>
@@ -200,21 +201,21 @@ export const FolderModal: React.FC<FolderModalProps> = ({ municipality, onClose 
         <div className="space-y-4">
           <div className="grid grid-cols-3 gap-3 text-center">
             <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200">
-              <div className="text-2xl font-black text-blue-900">{municipality.metrics.literacyRate || '93%'}</div>
-              <div className="text-[10px] text-slate-500 font-bold uppercase mt-1">Taxa de Fluência</div>
+              <div className="text-2xl font-semibold text-blue-900">{municipality.metrics.literacyRate || '93%'}</div>
+              <div className="text-xs text-slate-500 font-bold mt-1">Taxa de Fluência</div>
             </div>
             <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200">
-              <div className="text-2xl font-black text-emerald-600">{municipality.metrics.idebGrowth || '+0.8'}</div>
-              <div className="text-[10px] text-slate-500 font-bold uppercase mt-1">Crescimento IDEB</div>
+              <div className="text-2xl font-semibold text-emerald-600">{municipality.metrics.idebGrowth || '+0.8'}</div>
+              <div className="text-xs text-slate-500 font-bold mt-1">Crescimento IDEB</div>
             </div>
             <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200">
-              <div className="text-2xl font-black text-amber-600">{municipality.schoolsCount || '15+'}</div>
-              <div className="text-[10px] text-slate-500 font-bold uppercase mt-1">Escolas da Rede</div>
+              <div className="text-2xl font-semibold text-amber-600">{municipality.schoolsCount || '15+'}</div>
+              <div className="text-xs text-slate-500 font-bold mt-1">Escolas da Rede</div>
             </div>
           </div>
 
-          <div className="p-4 bg-gradient-to-r from-blue-950 to-blue-900 text-white rounded-2xl shadow-sm">
-            <div className="text-xs font-bold text-amber-400 uppercase">Compromisso Grupo Educare:</div>
+          <div className="p-4 band-deep rounded-2xl shadow-sm">
+            <div className="text-xs font-bold text-amber-400">Compromisso Grupo Educare:</div>
             <p className="text-xs text-blue-100 mt-1 leading-relaxed">
               "Garantimos a entrega pontual dos livros antes do início do ano letivo, reposição contínua ao longo do ano e formações práticas presenciais para cada professor da rede."
             </p>
@@ -232,16 +233,16 @@ export const FolderModal: React.FC<FolderModalProps> = ({ municipality, onClose 
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-950/75 backdrop-blur-md animate-backdrop">
       <div className="relative w-full max-w-3xl bg-white rounded-3xl shadow-modal border border-slate-200 overflow-hidden flex flex-col max-h-[92vh]">
         {/* Top Header */}
-        <div className="px-6 py-4 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white flex items-center justify-between">
+        <div className="px-6 py-4 band-deep flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-amber-500 text-slate-950 rounded-xl shadow-xs shrink-0">
               <FileText className="w-5 h-5" />
             </div>
             <div>
-              <div className="text-xs text-amber-300 font-bold uppercase tracking-wider">
+              <div className="text-xs text-amber-300 font-bold">
                 Visualizador de Folder Pedagógico
               </div>
-              <h3 className="text-base font-extrabold text-white">
+              <h3 className="text-base font-semibold text-white">
                 {municipality.name} • {currentProject.title}
               </h3>
             </div>
@@ -259,7 +260,7 @@ export const FolderModal: React.FC<FolderModalProps> = ({ municipality, onClose 
 
         {/* Collection Selector Tabs */}
         <div className="flex items-center gap-2 px-6 py-2.5 bg-slate-100 border-b border-slate-200 text-xs overflow-x-auto no-scrollbar">
-          <span className="font-bold text-slate-500 uppercase text-[10px] shrink-0">Coleção:</span>
+          <span className="font-bold text-slate-500 text-xs shrink-0">Coleção:</span>
           {[
             { id: 'alfa', label: 'AlfaEduca (Alfabetização)' },
             { id: 'maker', label: 'InovaEduca (Robótica Maker)' },
@@ -273,10 +274,10 @@ export const FolderModal: React.FC<FolderModalProps> = ({ municipality, onClose 
                 setCurrentPage(1);
               }}
               className={`px-3 py-1 rounded-xl font-bold shrink-0 transition-all ${
-                activeCatalog === cat.id
-                  ? 'bg-blue-900 text-white shadow-xs'
-                  : 'bg-white text-slate-600 hover:bg-slate-200 border border-slate-200'
-              }`}
+ activeCatalog === cat.id
+ ? 'bg-blue-900 text-white shadow-xs'
+ : 'bg-white text-slate-600 hover:bg-slate-200 border border-slate-200'
+ }`}
             >
               {cat.label}
             </button>
@@ -294,10 +295,10 @@ export const FolderModal: React.FC<FolderModalProps> = ({ municipality, onClose 
                   setCurrentPage(p);
                 }}
                 className={`px-2.5 py-1 rounded-lg font-bold transition-all ${
-                  currentPage === p
-                    ? 'bg-blue-700 text-white shadow-2xs'
-                    : 'text-slate-600 hover:bg-slate-200'
-                }`}
+ currentPage === p
+ ? 'bg-blue-700 text-white shadow-2xs'
+ : 'text-slate-600 hover:bg-slate-200'
+ }`}
               >
                 Pág. {p}
               </button>
@@ -334,7 +335,7 @@ export const FolderModal: React.FC<FolderModalProps> = ({ municipality, onClose 
         {/* Document Content */}
         <div className="p-6 overflow-y-auto flex-1 space-y-4">
           <div className="flex items-center justify-between">
-            <span className="px-3 py-1 bg-amber-100 text-amber-900 rounded-full text-xs font-black uppercase">
+            <span className="px-3 py-1 bg-amber-100 text-amber-900 rounded-full text-xs font-semibold">
               {pagesContent[currentPage - 1].badge}
             </span>
             <span className="text-[11px] text-slate-400 font-semibold">
@@ -343,7 +344,7 @@ export const FolderModal: React.FC<FolderModalProps> = ({ municipality, onClose 
           </div>
 
           <div>
-            <h4 className="text-lg font-black text-slate-900">
+            <h4 className="text-lg font-semibold text-slate-900">
               {pagesContent[currentPage - 1].title}
             </h4>
             <p className="text-xs text-slate-500 font-medium mt-0.5">
@@ -370,7 +371,7 @@ export const FolderModal: React.FC<FolderModalProps> = ({ municipality, onClose 
             </button>
 
             <a
-              href={`https://wa.me/5571999999999?text=${shareText}`}
+              href={`https://wa.me/${VITORIA_WHATSAPP}?text=${shareText}`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-bold text-emerald-800 bg-emerald-100 hover:bg-emerald-200 border border-emerald-300 rounded-xl active:scale-95 transition-all shadow-xs"
@@ -384,7 +385,7 @@ export const FolderModal: React.FC<FolderModalProps> = ({ municipality, onClose 
                 sounds.playChime();
                 alert(`Download do folder completo da ${currentProject.title} (${municipality.name}) iniciado em PDF!`);
               }}
-              className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-black text-white bg-blue-900 hover:bg-blue-950 rounded-xl active:scale-95 transition-all shadow-md"
+              className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-blue-900 hover:bg-blue-950 rounded-xl active:scale-95 transition-all shadow-md"
             >
               <Download className="w-3.5 h-3.5 text-amber-400" />
               Baixar Folder (.PDF)

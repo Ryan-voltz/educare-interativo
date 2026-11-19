@@ -56,10 +56,10 @@ export const VideoModal: React.FC<VideoModalProps> = ({ municipality, onClose })
           <div className="flex items-center gap-3">
             <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
             <div>
-              <div className="text-xs text-slate-400 font-bold uppercase tracking-wider">
+              <div className="text-xs text-slate-400 font-bold">
                 Case em Vídeo • Rede Municipal de {municipality.name}
               </div>
-              <h3 className="text-base font-extrabold text-white">{municipality.videoTitle}</h3>
+              <h3 className="text-base font-semibold text-white">{municipality.videoTitle}</h3>
             </div>
           </div>
           <button
@@ -97,17 +97,17 @@ export const VideoModal: React.FC<VideoModalProps> = ({ municipality, onClose })
 
           {/* On-screen Video Badges */}
           <div className="absolute top-4 left-4 z-10 flex items-center gap-2">
-            <span className="px-2.5 py-1 bg-blue-900/90 text-white text-[10px] font-black uppercase rounded-lg backdrop-blur-md border border-blue-700">
+            <span className="px-2.5 py-1 bg-blue-900/90 text-white text-xs font-semibold rounded-lg backdrop-blur-md border border-blue-700">
               {municipality.contractDate}
             </span>
-            <span className="px-2.5 py-1 bg-emerald-900/90 text-emerald-300 text-[10px] font-black uppercase rounded-lg backdrop-blur-md border border-emerald-700">
+            <span className="px-2.5 py-1 bg-emerald-900/90 text-emerald-300 text-xs font-semibold rounded-lg backdrop-blur-md border border-emerald-700">
               {municipality.studentsImpacted > 0 ? `${municipality.studentsImpacted.toLocaleString()} Alunos` : 'Rede Ativa'}
             </span>
           </div>
 
           {/* Lower caption in video */}
           <div className="absolute bottom-14 left-6 right-6 z-10 text-white pointer-events-none">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500 text-slate-950 rounded-full text-[11px] font-black uppercase mb-1.5">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500 text-slate-950 rounded-full text-[11px] font-semibold mb-1.5">
               <Sparkles className="w-3.5 h-3.5" />
               Depoimento Registrado na Rede Municipal
             </div>
@@ -164,7 +164,7 @@ export const VideoModal: React.FC<VideoModalProps> = ({ municipality, onClose })
 
         {/* Video Chapters Selector */}
         <div className="p-4 bg-slate-900/90 border-t border-slate-800 flex items-center gap-2 overflow-x-auto no-scrollbar">
-          <span className="text-[10px] font-bold text-slate-400 uppercase shrink-0">Capítulos:</span>
+          <span className="text-xs font-bold text-slate-400 shrink-0">Capítulos:</span>
           {CHAPTERS.map((ch, idx) => (
             <button
               key={idx}

@@ -1,6 +1,9 @@
 import React, { useMemo, useState, useRef, useCallback } from 'react';
 import * as d3Geo from 'd3-geo';
-import bahiaGeoJson from '../data/bahia-geo.json';
+import bahiaGeoRaw from '../data/bahia-geo.json';
+import { rewindForD3 } from '../utils/geo';
+
+const bahiaGeoJson = rewindForD3(bahiaGeoRaw as any);
 import { BAHIA_MUNICIPALITIES_DATA, type MunicipalityCase } from '../data/educareData';
 import { sounds } from '../utils/audio';
 import {
@@ -8,9 +11,7 @@ import {
   ZoomOut,
   RotateCcw,
   MapPin,
-  Sparkles,
   CheckCircle2,
-  Compass,
   ArrowUpRight,
 } from 'lucide-react';
 
@@ -178,81 +179,83 @@ export const BahiaMap: React.FC<BahiaMapProps> = ({
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
   };
 
+  const legend = [
+    { label: 'Rede parceira', swatch: 'bg-blue-600' },
+    { label: 'Selecionado', swatch: 'bg-amber-400 ring-1 ring-blue-950' },
+    { label: 'Resultado da busca', swatch: 'bg-amber-300' },
+    { label: 'Demais municípios', swatch: 'bg-slate-200' },
+  ];
+
   return (
-    <div className="relative w-full h-[650px] lg:h-[750px] bg-gradient-to-br from-slate-50 via-white to-sky-50/70 rounded-3xl border border-slate-200/90 shadow-elevated overflow-hidden select-none flex flex-col">
-      {/* Atlantic Ocean Watermark (Geographic Orientation) */}
-      <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-gradient-to-l from-sky-100/40 via-sky-50/20 to-transparent pointer-events-none"></div>
-      <div className="absolute right-6 top-1/2 -translate-y-1/2 rotate-90 text-[10px] font-black tracking-[0.3em] uppercase text-sky-700/20 pointer-events-none select-none">
+    <div className="relative w-full h-[520px] sm:h-[620px] lg:h-[760px] bg-white rounded-3xl border border-slate-200 shadow-elevated overflow-hidden select-none flex flex-col">
+      {/* Oceano: faixa leste em azul bem claro, orienta a leitura geográfica */}
+      <div className="absolute right-0 top-0 bottom-0 w-[30%] bg-gradient-to-l from-sky-100 to-transparent pointer-events-none" />
+      <div className="absolute right-5 top-1/2 -translate-y-1/2 rotate-90 origin-center text-xs tracking-[0.3em] uppercase text-sky-700/50 pointer-events-none">
         Oceano Atlântico
       </div>
 
-      {/* Top Regional Chips Navigation */}
-      <div className="relative z-20 px-4 pt-4 pb-2 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
-        {REGIONAL_PRESETS.map((preset) => (
+      {/* Regiões */}
+      <div className="relative z-20 shrink-0 px-4 pt-4 pb-2 flex items-center gap-1.5 overflow-x-auto no-scrollbar" role="group" aria-label="Aproximar uma região">
+        {REGIONAL_PRESETS.map((preset) => {
+          const active = activeRegion === preset.filter;
+          return (
+            <button
+              key={preset.name}
+              aria-pressed={active}
+              onClick={() => handleSelectRegion(preset)}
+              className={`h-9 px-3.5 rounded-full text-[13px] font-medium shrink-0 transition-colors ${
+                active
+                  ? 'bg-blue-950 text-white'
+                  : 'bg-white text-slate-700 border border-slate-200 hover:border-blue-300 hover:text-blue-950'
+              }`}
+            >
+              {preset.name}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Zoom */}
+      <div className="absolute top-[4.25rem] left-4 z-20 flex flex-col bg-white rounded-2xl shadow-elevated border border-slate-200 overflow-hidden">
+        {[
+          { onClick: () => handleZoom(1.3), label: 'Aproximar', Icon: ZoomIn },
+          { onClick: () => handleZoom(0.75), label: 'Afastar', Icon: ZoomOut },
+          { onClick: handleResetZoom, label: 'Ver a Bahia inteira', Icon: RotateCcw },
+        ].map(({ onClick, label, Icon }, i) => (
           <button
-            key={preset.name}
-            onClick={() => handleSelectRegion(preset)}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all active:scale-95 flex items-center gap-1 ${
-              activeRegion === preset.filter
-                ? 'bg-blue-900 text-white shadow-md ring-2 ring-blue-950/20'
-                : 'bg-white/90 text-slate-700 border border-slate-200/80 hover:bg-slate-100'
-            }`}
+            key={label}
+            onClick={onClick}
+            title={label}
+            aria-label={label}
+            className={`w-11 h-11 flex items-center justify-center text-slate-600 hover:text-blue-950 hover:bg-blue-50 transition-colors ${i > 0 ? 'border-t border-slate-200' : ''}`}
           >
-            <span>{preset.name}</span>
+            <Icon className="w-[18px] h-[18px]" />
           </button>
         ))}
       </div>
 
-      {/* Floating Map Controls */}
-      <div className="absolute top-16 left-4 z-20 flex flex-col gap-1.5 bg-white/95 backdrop-blur-md p-1.5 rounded-2xl shadow-md border border-slate-200">
-        <button
-          onClick={() => handleZoom(1.3)}
-          className="p-2.5 text-slate-700 hover:text-blue-900 hover:bg-sky-50 rounded-xl transition-all active:scale-90"
-          title="Aumentar Zoom (+)"
-        >
-          <ZoomIn className="w-4 h-4" />
-        </button>
-        <button
-          onClick={() => handleZoom(0.75)}
-          className="p-2.5 text-slate-700 hover:text-blue-900 hover:bg-sky-50 rounded-xl transition-all active:scale-90"
-          title="Diminuir Zoom (-)"
-        >
-          <ZoomOut className="w-4 h-4" />
-        </button>
-        <button
-          onClick={handleResetZoom}
-          className="p-2.5 text-slate-700 hover:text-blue-900 hover:bg-sky-50 rounded-xl transition-all active:scale-90"
-          title="Restaurar Visão Geral"
-        >
-          <RotateCcw className="w-4 h-4" />
-        </button>
+      {/* Legenda */}
+      <div className="absolute bottom-4 left-4 z-20 bg-white/95 rounded-2xl border border-slate-200 shadow-elevated px-4 py-3">
+        <div className="text-[13px] font-semibold text-blue-950 mb-2">Legenda</div>
+        <ul className="grid grid-cols-2 gap-x-5 gap-y-1.5">
+          {legend.map((l) => (
+            <li key={l.label} className="flex items-center gap-2 text-xs text-slate-700">
+              <span className={`w-3.5 h-3.5 rounded ${l.swatch}`} />
+              {l.label}
+            </li>
+          ))}
+        </ul>
       </div>
 
-      {/* Compass Badge */}
-      <div className="absolute bottom-16 right-4 z-20 hidden md:flex items-center gap-2 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-200 text-slate-500 text-xs shadow-xs pointer-events-none">
-        <Compass className="w-4 h-4 text-blue-700" />
-        <span className="font-bold text-[11px] tracking-wider uppercase">Bahia • Brasil</span>
+      <div className="absolute bottom-4 right-4 z-20 hidden md:flex items-center gap-2 bg-blue-950 text-white rounded-2xl px-4 py-2.5 text-sm shadow-elevated pointer-events-none">
+        <MapPin className="w-4 h-4 text-amber-400" />
+        Toque em um município para ver os contratos
       </div>
 
-      {/* Stand Interaction Pill */}
-      <div className="absolute bottom-4 left-4 z-20 flex items-center gap-3 bg-slate-950/90 text-white backdrop-blur-md px-4 py-2 rounded-2xl text-xs font-semibold shadow-lg">
-        <div className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded-full bg-blue-600 ring-2 ring-white/50"></span>
-          <span>42 Municípios Parceiros Ativos</span>
-        </div>
-        <div className="w-px h-3 bg-slate-700"></div>
-        <div className="flex items-center gap-1.5 text-orange-400">
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>Toque na cidade para acessar dossiê e folders</span>
-        </div>
-      </div>
-
-      {/* Hardware-accelerated SVG Canvas */}
-      <div className="flex-1 w-full h-full relative cursor-grab active:cursor-grabbing">
+      <div className={`flex-1 min-h-0 w-full relative ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}>
         <svg
           viewBox={`0 0 ${width} ${height}`}
-          className="w-full h-full"
-          style={{ willChange: 'transform' }}
+          className="w-full h-full touch-none"
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
@@ -260,19 +263,21 @@ export const BahiaMap: React.FC<BahiaMapProps> = ({
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
+          role="img"
+          aria-label="Mapa dos municípios da Bahia com as redes parceiras do Grupo Educare"
         >
           <defs>
             <filter id="cityGlow" x="-20%" y="-20%" width="140%" height="140%">
-              <feDropShadow dx="0" dy="1.5" stdDeviation="2.5" floodColor="#004B87" floodOpacity="0.35" />
+              <feDropShadow dx="0" dy="1" stdDeviation="1.5" floodColor="#0E2A6B" floodOpacity="0.25" />
             </filter>
             <filter id="selectedGlow" x="-40%" y="-40%" width="180%" height="180%">
-              <feDropShadow dx="0" dy="3" stdDeviation="5" floodColor="#F58220" floodOpacity="0.55" />
+              <feDropShadow dx="0" dy="3" stdDeviation="4" floodColor="#0E2A6B" floodOpacity="0.4" />
             </filter>
           </defs>
 
           <g
             transform={`translate(${pan.x}, ${pan.y}) scale(${zoomLevel})`}
-            style={{ transformOrigin: 'center center' }}
+            style={{ transformOrigin: 'center center', transition: isDragging ? 'none' : 'transform 0.45s cubic-bezier(0.16, 1, 0.3, 1)' }}
           >
             {/* Render Pre-computed Paths (Instant 60fps) */}
             {precomputedFeatures.map((item) => {
@@ -291,30 +296,30 @@ export const BahiaMap: React.FC<BahiaMapProps> = ({
                 searchTerm.trim().length > 1 &&
                 name.toLowerCase().includes(searchTerm.toLowerCase());
 
-              let fillColor = 'fill-slate-200/90';
+              let fillColor = 'fill-slate-200 hover:fill-blue-100';
               let strokeColor = 'stroke-white';
-              let strokeWidth = '0.5';
+              let strokeWidth = 0.5;
               let filter = '';
 
               if (isSelected) {
-                fillColor = 'fill-orange-500';
-                strokeColor = 'stroke-orange-950';
-                strokeWidth = '2.5';
+                fillColor = 'fill-amber-400';
+                strokeColor = 'stroke-blue-950';
+                strokeWidth = 2;
                 filter = 'url(#selectedGlow)';
               } else if (matchesSearch) {
-                fillColor = 'fill-amber-400';
+                fillColor = 'fill-amber-300';
                 strokeColor = 'stroke-amber-800';
-                strokeWidth = '2';
+                strokeWidth = 1.5;
               } else if (isFeatured) {
                 if (matchesRegion) {
-                  fillColor = 'fill-blue-700 hover:fill-blue-600';
+                  fillColor = 'fill-blue-600 hover:fill-blue-500';
                   strokeColor = 'stroke-white';
-                  strokeWidth = '1';
+                  strokeWidth = 0.9;
                   filter = 'url(#cityGlow)';
                 } else {
-                  fillColor = 'fill-blue-400/50 hover:fill-blue-500';
+                  fillColor = 'fill-blue-300 hover:fill-blue-400';
                   strokeColor = 'stroke-white';
-                  strokeWidth = '0.6';
+                  strokeWidth = 0.6;
                 }
               }
 
@@ -322,8 +327,10 @@ export const BahiaMap: React.FC<BahiaMapProps> = ({
                 <path
                   key={code}
                   d={pathD}
-                  filter={filter}
-                  className={`${fillColor} ${strokeColor} stroke-[${strokeWidth}] transition-colors duration-150 ease-out cursor-pointer hover:opacity-90`}
+                  filter={filter || undefined}
+                  strokeWidth={strokeWidth}
+                  vectorEffect="non-scaling-stroke"
+                  className={`${fillColor} ${strokeColor} transition-colors duration-150 ease-out cursor-pointer`}
                   onClick={(e) => {
                     e.stopPropagation();
                     sounds.playTap();
@@ -372,25 +379,23 @@ export const BahiaMap: React.FC<BahiaMapProps> = ({
               );
             })}
 
-            {/* Glowing Centroids & City Pins */}
             {partnerCentroids.map((item) => {
               const isSelected = selectedMunicipalityId === item.code;
-
+              const r = 1 / Math.sqrt(zoomLevel);
               return (
                 <g
                   key={`pin-${item.code}`}
-                  transform={`translate(${item.centroid[0]}, ${item.centroid[1]})`}
+                  transform={`translate(${item.centroid[0]}, ${item.centroid[1]}) scale(${r})`}
                   className="pointer-events-none"
                 >
                   {isSelected ? (
                     <>
-                      <circle r={14} className="fill-orange-500/30 animate-ping" />
-                      <circle r={6} className="fill-orange-500 stroke-white stroke-2 drop-shadow" />
+                      <circle r={14} className="fill-amber-400/40 animate-ping" />
+                      <circle r={6.5} className="fill-blue-950 stroke-white" strokeWidth={2} />
                     </>
                   ) : (
                     <>
-                      <circle r={4.5} className="fill-amber-400 stroke-blue-950 stroke-[1.5]" />
-                      <circle r={2} className="fill-white" />
+                      <circle r={4} className="fill-white stroke-blue-950" strokeWidth={1.5} />
                     </>
                   )}
                 </g>
@@ -400,45 +405,33 @@ export const BahiaMap: React.FC<BahiaMapProps> = ({
         </svg>
       </div>
 
-      {/* Floating Rich Tooltip */}
       {hoveredMunicipality && (
         <div
-          className="fixed pointer-events-none z-50 transform -translate-x-1/2 -translate-y-full mb-3 px-4 py-3 bg-slate-950/95 text-white rounded-2xl shadow-modal border border-slate-700 text-xs backdrop-blur-md transition-all duration-150 min-w-[210px]"
-          style={{
-            left: `${hoveredMunicipality.x}px`,
-            top: `${hoveredMunicipality.y}px`,
-          }}
+          className="fixed pointer-events-none z-50 -translate-x-1/2 -translate-y-full px-4 py-3 bg-blue-950 text-white rounded-2xl shadow-modal text-sm min-w-[220px]"
+          style={{ left: `${hoveredMunicipality.x}px`, top: `${hoveredMunicipality.y}px` }}
         >
-          <div className="flex items-center justify-between gap-2 border-b border-slate-800 pb-1.5 mb-1.5">
-            <div className="font-extrabold text-sm text-amber-400 flex items-center gap-1.5">
-              <MapPin className="w-3.5 h-3.5 text-orange-500" />
-              <span>{hoveredMunicipality.name}</span>
-            </div>
-            <span className="text-[10px] text-slate-400 font-semibold">{hoveredMunicipality.region}</span>
-          </div>
-
+          <div className="font-heading font-semibold text-base leading-tight">{hoveredMunicipality.name}</div>
+          <div className="text-xs text-blue-200 mt-0.5">{hoveredMunicipality.region}</div>
           {hoveredMunicipality.isFeatured ? (
-            <div className="space-y-1">
-              <div className="flex items-center gap-1.5 text-emerald-400 font-bold">
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>Rede Parceira ({hoveredMunicipality.contractDate || 'Ativa'})</span>
+            <div className="mt-2 pt-2 border-t border-white/15 space-y-1">
+              <div className="flex items-center gap-1.5 text-emerald-300 font-medium text-[13px]">
+                <CheckCircle2 className="w-4 h-4" />
+                Rede parceira · {hoveredMunicipality.contractDate || 'ativa'}
               </div>
-              {hoveredMunicipality.students && (
-                <div className="text-slate-300 text-[11px]">
-                  Impacto: <strong>{hoveredMunicipality.students.toLocaleString()}</strong> alunos
+              {hoveredMunicipality.students ? (
+                <div className="text-[13px] text-blue-100 tabular-nums">
+                  {hoveredMunicipality.students.toLocaleString('pt-BR')} alunos atendidos
                 </div>
-              )}
-              <div className="text-[10px] text-amber-300/90 font-medium pt-1 flex items-center gap-1">
-                <span>Toque para abrir dossiê, folders e vídeo</span>
-                <ArrowUpRight className="w-3 h-3" />
+              ) : null}
+              <div className="text-xs text-amber-300 flex items-center gap-1">
+                Toque para ver os contratos
+                <ArrowUpRight className="w-3.5 h-3.5" />
               </div>
             </div>
           ) : (
-            <div className="text-slate-300 text-[11px]">
-              <div>Rede municipal elegível para novas soluções</div>
-              <div className="text-orange-400 font-bold text-[10px] mt-1">
-                Toque para simular proposta personalizada
-              </div>
+            <div className="mt-2 pt-2 border-t border-white/15 text-[13px] text-blue-100">
+              Rede elegível para novas soluções.
+              <div className="text-amber-300 text-xs mt-1">Toque para saber como atender sua rede</div>
             </div>
           )}
         </div>

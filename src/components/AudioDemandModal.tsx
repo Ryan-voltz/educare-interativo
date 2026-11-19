@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { type MunicipalityCase, CATALOG_PROJECTS } from '../data/educareData';
 import { sounds } from '../utils/audio';
+import { VITORIA_WHATSAPP } from '../config/contato';
 
 interface AudioDemandModalProps {
   municipality: MunicipalityCase | null;
@@ -52,17 +53,17 @@ export const AudioDemandModal: React.FC<AudioDemandModalProps> = ({
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-950/80 backdrop-blur-md animate-backdrop">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-blue-950/70 backdrop-blur-sm animate-backdrop">
       <div className="relative w-full max-w-4xl bg-white rounded-3xl shadow-modal border border-slate-200 overflow-hidden flex flex-col max-h-[95vh]">
         {/* Top Header with City Name and Date of Supply */}
-        <div className="px-6 py-5 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white relative">
+        <div className="px-6 py-5 band-deep relative">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <div className="flex items-center gap-2 text-xs font-bold text-amber-400 uppercase tracking-widest">
+              <div className="flex items-center gap-2 text-xs font-bold text-amber-400">
                 <MapPin className="w-4 h-4 text-orange-400 shrink-0" />
                 <span>{municipality.region} • Bahia</span>
               </div>
-              <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white mt-0.5">
+              <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-white mt-0.5">
                 {municipality.name}
               </h2>
             </div>
@@ -95,10 +96,10 @@ export const AudioDemandModal: React.FC<AudioDemandModalProps> = ({
                 setActiveTab('folder');
               }}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
-                activeTab === 'folder'
-                  ? 'bg-white text-blue-950 shadow-md ring-2 ring-white/40'
-                  : 'bg-white/10 text-blue-200 hover:bg-white/20'
-              }`}
+ activeTab === 'folder'
+ ? 'bg-white text-blue-950 shadow-md ring-2 ring-white/40'
+ : 'bg-white/10 text-blue-200 hover:bg-white/20'
+ }`}
             >
               <FileText className="w-4 h-4 text-orange-500" />
               <span>1. Folder do Material Apresentado</span>
@@ -111,10 +112,10 @@ export const AudioDemandModal: React.FC<AudioDemandModalProps> = ({
                 setIsPlaying(true);
               }}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
-                activeTab === 'video'
-                  ? 'bg-white text-blue-950 shadow-md ring-2 ring-white/40'
-                  : 'bg-white/10 text-blue-200 hover:bg-white/20'
-              }`}
+ activeTab === 'video'
+ ? 'bg-white text-blue-950 shadow-md ring-2 ring-white/40'
+ : 'bg-white/10 text-blue-200 hover:bg-white/20'
+ }`}
             >
               <Play className="w-4 h-4 text-blue-600 fill-blue-600" />
               <span>2. Vídeo do Case na Escola</span>
@@ -126,10 +127,10 @@ export const AudioDemandModal: React.FC<AudioDemandModalProps> = ({
                 setActiveTab('metricas');
               }}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
-                activeTab === 'metricas'
-                  ? 'bg-white text-blue-950 shadow-md ring-2 ring-white/40'
-                  : 'bg-white/10 text-blue-200 hover:bg-white/20'
-              }`}
+ activeTab === 'metricas'
+ ? 'bg-white text-blue-950 shadow-md ring-2 ring-white/40'
+ : 'bg-white/10 text-blue-200 hover:bg-white/20'
+ }`}
             >
               <TrendingUp className="w-4 h-4 text-emerald-500" />
               <span>3. Dados da Rede & Impacto</span>
@@ -149,10 +150,10 @@ export const AudioDemandModal: React.FC<AudioDemandModalProps> = ({
                     <BookOpen className="w-6 h-6 text-amber-400" />
                   </div>
                   <div>
-                    <span className="text-[10px] font-black text-orange-600 uppercase tracking-widest">
+                    <span className="text-xs font-semibold text-orange-600">
                       {primaryProject.tag} • Material Fornecido
                     </span>
-                    <h3 className="text-base sm:text-lg font-black text-slate-900">
+                    <h3 className="text-base sm:text-lg font-semibold text-slate-900">
                       {primaryProject.title}
                     </h3>
                   </div>
@@ -206,11 +207,11 @@ export const AudioDemandModal: React.FC<AudioDemandModalProps> = ({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* Left Book Page */}
                       <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
-                        <div className="flex items-center justify-between text-[11px] font-bold text-slate-400 uppercase">
+                        <div className="flex items-center justify-between text-[11px] font-bold text-slate-400">
                           <span>Unidade 1 • Alfabetização & Linguagem</span>
                           <span>Pág. 12</span>
                         </div>
-                        <h4 className="text-sm font-black text-slate-900">
+                        <h4 className="text-sm font-semibold text-slate-900">
                           Cantiga e Rima: "Marinheiro Só no Recôncavo"
                         </h4>
                         <div className="p-3 bg-amber-50/70 rounded-xl border border-amber-100 text-xs italic font-serif text-slate-700 leading-relaxed">
@@ -227,22 +228,22 @@ export const AudioDemandModal: React.FC<AudioDemandModalProps> = ({
 
                       {/* Right Book Page: Atividade de Fixação */}
                       <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
-                        <div className="flex items-center justify-between text-[11px] font-bold text-slate-400 uppercase">
+                        <div className="flex items-center justify-between text-[11px] font-bold text-slate-400">
                           <span>Consciência Fonológica</span>
                           <span>Pág. 13</span>
                         </div>
-                        <h4 className="text-sm font-black text-slate-900">
+                        <h4 className="text-sm font-semibold text-slate-900">
                           Banco de Palavras e Letras Móveis
                         </h4>
                         <div className="space-y-2 text-xs">
                           <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
-                            <span className="font-extrabold text-slate-800">MARINHEIRO</span>
+                            <span className="font-semibold text-slate-800">MARINHEIRO</span>
                             <span className="font-mono text-blue-700 font-bold bg-blue-50 px-2 py-0.5 rounded">
                               4 sílabas
                             </span>
                           </div>
                           <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
-                            <span className="font-extrabold text-slate-800">BARCO</span>
+                            <span className="font-semibold text-slate-800">BARCO</span>
                             <span className="font-mono text-blue-700 font-bold bg-blue-50 px-2 py-0.5 rounded">
                               2 sílabas
                             </span>
@@ -285,23 +286,23 @@ export const AudioDemandModal: React.FC<AudioDemandModalProps> = ({
                 {/* Page 3: Kit Pedagógico Completo */}
                 {folderPage === 3 && (
                   <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-                    <h4 className="text-sm font-black text-slate-900">
+                    <h4 className="text-sm font-semibold text-slate-900">
                       Composição do Kit Entregue para a Rede de {municipality.name}
                     </h4>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                       <div className="p-3.5 bg-sky-50 rounded-xl border border-sky-200 text-center">
                         <BookOpen className="w-5 h-5 text-blue-700 mx-auto mb-1.5" />
-                        <span className="font-extrabold text-blue-950 block">Livro do Aluno</span>
+                        <span className="font-semibold text-blue-950 block">Livro do Aluno</span>
                         <span className="text-slate-600 text-[11px]">Consumível individual para cada criança</span>
                       </div>
                       <div className="p-3.5 bg-orange-50 rounded-xl border border-orange-200 text-center">
                         <GraduationCap className="w-5 h-5 text-orange-600 mx-auto mb-1.5" />
-                        <span className="font-extrabold text-orange-950 block">Guia do Educador</span>
+                        <span className="font-semibold text-orange-950 block">Guia do Educador</span>
                         <span className="text-slate-600 text-[11px]">Manual comentado e banco de provas</span>
                       </div>
                       <div className="p-3.5 bg-emerald-50 rounded-xl border border-emerald-200 text-center">
                         <Sparkles className="w-5 h-5 text-emerald-700 mx-auto mb-1.5" />
-                        <span className="font-extrabold text-emerald-950 block">Caixas de Jogos</span>
+                        <span className="font-semibold text-emerald-950 block">Caixas de Jogos</span>
                         <span className="text-slate-600 text-[11px]">Alfabeto móvel e dados de rimas</span>
                       </div>
                     </div>
@@ -317,7 +318,7 @@ export const AudioDemandModal: React.FC<AudioDemandModalProps> = ({
 
                 <div className="flex items-center gap-2 w-full sm:w-auto">
                   <a
-                    href={`https://wa.me/5571999999999?text=${whatsappMessage}`}
+                    href={`https://wa.me/${VITORIA_WHATSAPP}?text=${whatsappMessage}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs active:scale-95 transition-all"
@@ -331,7 +332,7 @@ export const AudioDemandModal: React.FC<AudioDemandModalProps> = ({
                       sounds.playChime();
                       alert(`Download do Folder Oficial de ${municipality.name} iniciado em PDF!`);
                     }}
-                    className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-900 hover:bg-blue-950 text-white font-black text-xs rounded-xl shadow-md active:scale-95 transition-all"
+                    className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-900 hover:bg-blue-950 text-white font-semibold text-xs rounded-xl shadow-md active:scale-95 transition-all"
                   >
                     <Download className="w-4 h-4 text-amber-400" />
                     <span>Baixar Folder em PDF</span>
@@ -365,7 +366,7 @@ export const AudioDemandModal: React.FC<AudioDemandModalProps> = ({
 
                 {/* Video Info Overlay */}
                 <div className="absolute bottom-12 left-5 right-5 z-10 text-white pointer-events-none">
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500 text-slate-950 rounded-full text-[10px] font-black uppercase mb-1">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500 text-slate-950 rounded-full text-xs font-semibold mb-1">
                     <Sparkles className="w-3.5 h-3.5" />
                     {municipality.name} • Fornecido {municipality.contractDate}
                   </div>
@@ -410,38 +411,38 @@ export const AudioDemandModal: React.FC<AudioDemandModalProps> = ({
               <div className="grid grid-cols-3 gap-3">
                 <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-center">
                   <School className="w-6 h-6 text-blue-700 mx-auto mb-1.5" />
-                  <div className="text-2xl font-black text-slate-900">
+                  <div className="text-2xl font-semibold text-slate-900">
                     {municipality.schoolsCount > 0 ? municipality.schoolsCount : '15+'}
                   </div>
-                  <div className="text-xs font-bold text-slate-500 uppercase mt-0.5">Escolas Atendidas</div>
+                  <div className="text-xs font-bold text-slate-500 mt-0.5">Escolas Atendidas</div>
                 </div>
 
                 <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-center">
                   <Users className="w-6 h-6 text-emerald-600 mx-auto mb-1.5" />
-                  <div className="text-2xl font-black text-slate-900">
+                  <div className="text-2xl font-semibold text-slate-900">
                     {municipality.studentsImpacted > 0 ? `${(municipality.studentsImpacted / 1000).toFixed(1)}k` : '5k+'}
                   </div>
-                  <div className="text-xs font-bold text-slate-500 uppercase mt-0.5">Alunos Beneficiados</div>
+                  <div className="text-xs font-bold text-slate-500 mt-0.5">Alunos Beneficiados</div>
                 </div>
 
                 <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-center">
                   <GraduationCap className="w-6 h-6 text-amber-600 mx-auto mb-1.5" />
-                  <div className="text-2xl font-black text-slate-900">
+                  <div className="text-2xl font-semibold text-slate-900">
                     {municipality.teachersTrained > 0 ? municipality.teachersTrained : '200+'}
                   </div>
-                  <div className="text-xs font-bold text-slate-500 uppercase mt-0.5">Professores Formados</div>
+                  <div className="text-xs font-bold text-slate-500 mt-0.5">Professores Formados</div>
                 </div>
               </div>
 
               {municipality.metrics && (
                 <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl flex items-center justify-between">
                   <div>
-                    <div className="text-xs font-bold text-amber-900 uppercase">Resultado no SAEB / Alfabetização:</div>
-                    <div className="text-sm font-extrabold text-slate-900 mt-0.5">
+                    <div className="text-xs font-bold text-amber-900">Resultado no SAEB / Alfabetização:</div>
+                    <div className="text-sm font-semibold text-slate-900 mt-0.5">
                       {municipality.metrics.literacyRate || '94% alfabetizados no 2º ano'}
                     </div>
                   </div>
-                  <span className="px-3 py-1 bg-amber-500 text-white font-black text-xs rounded-xl shadow-xs">
+                  <span className="px-3 py-1 bg-amber-400 text-blue-950 font-semibold text-xs rounded-xl shadow-xs">
                     {municipality.metrics.idebGrowth || '+0.8 no IDEB'}
                   </span>
                 </div>
@@ -475,13 +476,13 @@ export const AudioDemandModal: React.FC<AudioDemandModalProps> = ({
                 sounds.playTap();
                 onOpenProposal(municipality);
               }}
-              className="flex-1 sm:flex-initial px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs uppercase rounded-xl shadow-xs transition-all active:scale-95"
+              className="flex-1 sm:flex-initial px-4 py-2 btn-yellow font-semibold text-xs rounded-xl shadow-xs transition-all active:scale-95"
             >
               Simular Proposta para Minha Rede
             </button>
 
             <a
-              href={`https://wa.me/5571999999999?text=${whatsappMessage}`}
+              href={`https://wa.me/${VITORIA_WHATSAPP}?text=${whatsappMessage}`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all active:scale-95"

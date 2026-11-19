@@ -1,6 +1,9 @@
 import React, { useMemo, useState, useRef, useCallback } from 'react';
 import * as d3Geo from 'd3-geo';
-import brasilGeoJson from '../data/brasil-geo.json';
+import brasilGeoRaw from '../data/brasil-geo.json';
+import { rewindForD3 } from '../utils/geo';
+
+const brasilGeoJson = rewindForD3(brasilGeoRaw as any);
 import { BRASIL_STATES_DATA, type StateCase } from '../data/educareData';
 import { sounds } from '../utils/audio';
 import { ZoomIn, ZoomOut, RotateCcw, MapPin, Sparkles, ArrowRight } from 'lucide-react';
@@ -227,17 +230,17 @@ export const BrasilMap: React.FC<BrasilMapProps> = ({
                   <circle
                     r={isBahia ? 14 : 11}
                     className={`${
-                      isBahia
-                        ? 'fill-amber-400 stroke-blue-950 stroke-2'
-                        : 'fill-white stroke-blue-900 stroke-[1.5]'
-                    } drop-shadow`}
+ isBahia
+ ? 'fill-amber-400 stroke-blue-950 stroke-2'
+ : 'fill-white stroke-blue-900 stroke-[1.5]'
+ } drop-shadow`}
                   />
                   <text
                     textAnchor="middle"
                     dy="3.5"
-                    className={`font-black ${
-                      isBahia ? 'text-[11px] fill-blue-950' : 'text-[9px] fill-blue-900'
-                    }`}
+                    className={`font-semibold ${
+ isBahia ? 'text-[11px] fill-blue-950' : 'text-[9px] fill-blue-900'
+ }`}
                   >
                     {item.sigla}
                   </text>
@@ -256,7 +259,7 @@ export const BrasilMap: React.FC<BrasilMapProps> = ({
             top: `${hoveredState.y}px`,
           }}
         >
-          <div className="font-extrabold text-sm text-sky-300 flex items-center gap-1.5">
+          <div className="font-semibold text-sm text-sky-300 flex items-center gap-1.5">
             <MapPin className="w-3.5 h-3.5 text-amber-400" />
             <span>{hoveredState.nome} ({hoveredState.sigla})</span>
           </div>
@@ -269,7 +272,7 @@ export const BrasilMap: React.FC<BrasilMapProps> = ({
                 {hoveredState.data.alunosImpactados.toLocaleString()} alunos beneficiados
               </div>
               {hoveredState.sigla === 'BA' && (
-                <div className="text-amber-300 font-black text-[11px] mt-1 flex items-center gap-1">
+                <div className="text-amber-300 font-semibold text-[11px] mt-1 flex items-center gap-1">
                   <span>Toque para explorar os 42 municípios da Bahia</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </div>
