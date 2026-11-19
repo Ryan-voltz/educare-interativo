@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
-import { MessageCircle, Maximize2, X } from 'lucide-react';
-import { VITORIA_NOME, telefoneFormatado, whatsappLink } from '../config/contato';
+import { MessageCircle, Maximize2, X, Globe } from 'lucide-react';
+import { SITE_ATACADO_GE, SITE_ATACADO_GE_URL, VITORIA_NOME, telefoneFormatado, whatsappLink } from '../config/contato';
 import { sounds } from '../utils/audio';
 import { ToyPattern } from './ToyPattern';
 
@@ -110,6 +110,15 @@ export const WhatsAppQR: React.FC = () => {
                 <MessageCircle className="w-4 h-4" />
                 {telefoneFormatado()}
               </a>
+              <a
+                href={SITE_ATACADO_GE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-1.5 ml-4 inline-flex items-center gap-1.5 text-sm font-semibold text-blue-700 hover:text-blue-900 whitespace-nowrap"
+              >
+                <Globe className="w-4 h-4" />
+                {SITE_ATACADO_GE}
+              </a>
             </div>
           </>
         </div>
@@ -150,6 +159,7 @@ export const WhatsAppQR: React.FC = () => {
               </div>
               <p className="mt-4 text-sm text-slate-600">Aponte a câmera do celular para o código.</p>
               <p className="mt-1 font-semibold text-blue-950 tabular-nums">{telefoneFormatado()}</p>
+              <p className="mt-1 font-semibold text-blue-700">{SITE_ATACADO_GE}</p>
             </div>
           </div>
         </div>

@@ -44,9 +44,10 @@ export interface StateCase {
   nome: string;
   regiao: string;
   active: boolean;
-  municipiosAtendidos: number;
-  alunosImpactados: number;
-  anoInicio: string;
+  /** Contratos fornecidos no estado (distribuição estimada, ver CONTRATOS_ESTADOS_ESTIMADOS) */
+  contratos: number;
+  /** Só a Bahia tem o mapa por município */
+  municipiosAtendidos?: number;
   destaque: string;
 }
 
@@ -893,105 +894,63 @@ export const BAHIA_MUNICIPALITIES_DATA: Record<string, MunicipalityCase> = {
 };
 
 // Estados Brasileiros com presença e expansão do Grupo Educare
+/**
+ * Presença nacional informada pelo cliente (19/11/2026): cerca de 2.000 contratos
+ * em 6 estados. Bahia é a maior parte, Maranhão o segundo; Santa Catarina e Paraná
+ * têm menos de 5 cada. A divisão exata por estado ainda é ESTIMADA: troque os
+ * números quando chegar a lista oficial e mude CONTRATOS_ESTADOS_ESTIMADOS para false.
+ */
+export const CONTRATOS_ESTADOS_ESTIMADOS = true;
+export const TOTAL_CONTRATOS_BRASIL = 2000;
+
 export const BRASIL_STATES_DATA: Record<string, StateCase> = {
-  'BA': {
+  BA: {
     sigla: 'BA',
     nome: 'Bahia',
     regiao: 'Nordeste',
     active: true,
+    contratos: 1300,
     municipiosAtendidos: 42,
-    alunosImpactados: 310000,
-    anoInicio: '2019',
-    destaque: 'Sede e principal centro de atendimento pedagógico no Nordeste com mais de 40 municípios parceiros.'
+    destaque: 'Maior presença do Grupo Educare: a maior parte dos contratos está em municípios baianos.',
   },
-  'SE': {
-    sigla: 'SE',
-    nome: 'Sergipe',
-    regiao: 'Nordeste',
-    active: true,
-    municipiosAtendidos: 14,
-    alunosImpactados: 48000,
-    anoInicio: '2021',
-    destaque: 'Atuação em redes municipais de grande porte e polo regional de alfabetização.'
-  },
-  'AL': {
-    sigla: 'AL',
-    nome: 'Alagoas',
-    regiao: 'Nordeste',
-    active: true,
-    municipiosAtendidos: 16,
-    alunosImpactados: 52000,
-    anoInicio: '2022',
-    destaque: 'Parcerias com foco no avanço de índices do SAEB e alfabetização estruturada.'
-  },
-  'PE': {
-    sigla: 'PE',
-    nome: 'Pernambuco',
-    regiao: 'Nordeste',
-    active: true,
-    municipiosAtendidos: 22,
-    alunosImpactados: 85000,
-    anoInicio: '2021',
-    destaque: 'Implementação de laboratórios maker e coleções de educação integral.'
-  },
-  'CE': {
-    sigla: 'CE',
-    nome: 'Ceará',
-    regiao: 'Nordeste',
-    active: true,
-    municipiosAtendidos: 18,
-    alunosImpactados: 64000,
-    anoInicio: '2022',
-    destaque: 'Intercâmbio de boas práticas pedagógicas e materiais de aceleração de aprendizagem.'
-  },
-  'PI': {
-    sigla: 'PI',
-    nome: 'Piauí',
-    regiao: 'Nordeste',
-    active: true,
-    municipiosAtendidos: 11,
-    alunosImpactados: 36000,
-    anoInicio: '2023',
-    destaque: 'Projetos de formação continuada para equipes diretivas municipais.'
-  },
-  'MA': {
+  MA: {
     sigla: 'MA',
     nome: 'Maranhão',
     regiao: 'Nordeste',
     active: true,
-    municipiosAtendidos: 15,
-    alunosImpactados: 44000,
-    anoInicio: '2023',
-    destaque: 'Expansão em municípios do interior com livros didáticos contextualizados.'
+    contratos: 520,
+    destaque: 'Segundo estado com mais contratos do Grupo Educare.',
   },
-  'MG': {
-    sigla: 'MG',
-    nome: 'Minas Gerais',
-    regiao: 'Sudeste',
+  PB: {
+    sigla: 'PB',
+    nome: 'Paraíba',
+    regiao: 'Nordeste',
     active: true,
-    municipiosAtendidos: 20,
-    alunosImpactados: 72000,
-    anoInicio: '2022',
-    destaque: 'Forte atuação no Norte de Minas e Vale do Jequitinhonha.'
+    contratos: 96,
+    destaque: 'Redes municipais atendidas com materiais e formação.',
   },
-  'ES': {
-    sigla: 'ES',
-    nome: 'Espírito Santo',
-    regiao: 'Sudeste',
+  RN: {
+    sigla: 'RN',
+    nome: 'Rio Grande do Norte',
+    regiao: 'Nordeste',
     active: true,
-    municipiosAtendidos: 9,
-    alunosImpactados: 31000,
-    anoInicio: '2023',
-    destaque: 'Projetos socioemocionais e laboratórios integrados de robótica.'
+    contratos: 76,
+    destaque: 'Redes municipais atendidas com materiais e formação.',
   },
-  'GO': {
-    sigla: 'GO',
-    nome: 'Goiás',
-    regiao: 'Centro-Oeste',
+  SC: {
+    sigla: 'SC',
+    nome: 'Santa Catarina',
+    regiao: 'Sul',
     active: true,
-    municipiosAtendidos: 8,
-    alunosImpactados: 29000,
-    anoInicio: '2023',
-    destaque: 'Atendimento a redes municipais do entorno de Brasília e centro goiano.'
-  }
+    contratos: 4,
+    destaque: 'Presença inicial na região Sul.',
+  },
+  PR: {
+    sigla: 'PR',
+    nome: 'Paraná',
+    regiao: 'Sul',
+    active: true,
+    contratos: 4,
+    destaque: 'Presença inicial na região Sul.',
+  },
 };

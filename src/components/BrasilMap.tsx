@@ -4,9 +4,14 @@ import brasilGeoRaw from '../data/brasil-geo.json';
 import { rewindForD3 } from '../utils/geo';
 
 const brasilGeoJson = rewindForD3(brasilGeoRaw as any);
-import { BRASIL_STATES_DATA, type StateCase } from '../data/educareData';
+import {
+  BRASIL_STATES_DATA,
+  CONTRATOS_ESTADOS_ESTIMADOS,
+  TOTAL_CONTRATOS_BRASIL,
+  type StateCase,
+} from '../data/educareData';
 import { sounds } from '../utils/audio';
-import { ZoomIn, ZoomOut, RotateCcw, MapPin, Sparkles, ArrowRight } from 'lucide-react';
+import { ZoomIn, ZoomOut, RotateCcw, MapPin, ArrowRight } from 'lucide-react';
 
 interface BrasilMapProps {
   selectedStateSigla: string | null;
@@ -136,15 +141,15 @@ export const BrasilMap: React.FC<BrasilMapProps> = ({
       </div>
 
       {/* Map Badge Status */}
-      <div className="absolute top-4 right-4 z-20 hidden sm:flex items-center gap-2 bg-white/95 backdrop-blur-md px-4 py-2 rounded-2xl shadow-xs border border-slate-200 text-xs font-bold text-blue-950">
-        <span className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
-        <span>10 Estados Alcançados no Brasil</span>
+      <div className="absolute top-4 right-4 z-20 hidden sm:flex items-center gap-2 bg-white px-4 py-2 rounded-2xl shadow-elevated border border-slate-200 text-sm font-semibold text-blue-950">
+        <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+        {Object.keys(BRASIL_STATES_DATA).length} estados · cerca de {TOTAL_CONTRATOS_BRASIL.toLocaleString('pt-BR')} contratos
       </div>
 
       {/* Bottom Hint */}
-      <div className="absolute bottom-4 left-4 z-20 flex items-center gap-2 bg-slate-950/90 text-white backdrop-blur-md px-4 py-2 rounded-2xl text-xs font-semibold shadow-lg pointer-events-none">
-        <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-        <span>Selecione um estado para ver a presença ou clique na Bahia para abrir os municípios</span>
+      <div className="absolute bottom-4 left-4 z-20 flex items-center gap-2 bg-blue-950 text-white px-4 py-2.5 rounded-2xl text-sm shadow-elevated pointer-events-none">
+        <MapPin className="w-4 h-4 text-amber-400" />
+        <span>Toque em um estado para ver os contratos. Na Bahia, abra os municípios.</span>
       </div>
 
       {/* Interactive SVG */}
@@ -253,7 +258,7 @@ export const BrasilMap: React.FC<BrasilMapProps> = ({
 
       {hoveredState && (
         <div
-          className="fixed pointer-events-none z-50 transform -translate-x-1/2 -translate-y-full mb-3 px-4 py-3 bg-slate-950/95 text-white rounded-2xl shadow-modal border border-slate-700 text-xs backdrop-blur-md transition-all duration-150"
+          className="fixed pointer-events-none z-50 -translate-x-1/2 -translate-y-full px-4 py-3 bg-blue-950 text-white rounded-2xl shadow-modal text-xs"
           style={{
             left: `${hoveredState.x}px`,
             top: `${hoveredState.y}px`,
@@ -265,11 +270,9 @@ export const BrasilMap: React.FC<BrasilMapProps> = ({
           </div>
           {hoveredState.data ? (
             <div className="mt-1 space-y-0.5">
-              <div className="text-emerald-400 font-bold">
-                {hoveredState.data.municipiosAtendidos} municípios atendidos
-              </div>
-              <div className="text-slate-300 text-[11px]">
-                {hoveredState.data.alunosImpactados.toLocaleString()} alunos beneficiados
+              <div className="text-emerald-300 font-semibold text-[13px] tabular-nums">
+                {CONTRATOS_ESTADOS_ESTIMADOS ? 'cerca de ' : ''}
+                {hoveredState.data.contratos.toLocaleString('pt-BR')} contratos
               </div>
               {hoveredState.sigla === 'BA' && (
                 <div className="text-amber-300 font-semibold text-[11px] mt-1 flex items-center gap-1">
