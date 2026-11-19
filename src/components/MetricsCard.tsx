@@ -4,12 +4,13 @@ import {
   BAHIA_MUNICIPALITIES_DATA,
   type MunicipalityCase,
   BRASIL_STATES_DATA,
+  TOTAL_CONTRATOS_BRASIL,
   type StateCase,
 } from '../data/educareData';
 import { sounds } from '../utils/audio';
 
 const MUNICIPALITIES = Object.values(BAHIA_MUNICIPALITIES_DATA).sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
-const STATES = Object.values(BRASIL_STATES_DATA);
+const STATES = Object.values(BRASIL_STATES_DATA).sort((a, b) => b.contratos - a.contratos);
 
 const PILLARS = [
   {
@@ -62,14 +63,14 @@ export const MetricsCard: React.FC<MetricsCardProps> = ({ viewMode, onOpenPropos
     <section className="shrink-0 bg-white rounded-3xl border border-slate-200 shadow-elevated overflow-hidden">
       <div className="flex items-end gap-3.5 px-5 xl:px-6 pt-4 pb-3 border-b border-slate-200">
         <span className="font-heading font-semibold text-orange-500 text-5xl 2xl:text-6xl leading-[0.85] tabular-nums">
-          {isBahia ? '42' : '10+'}
+          {isBahia ? '42' : Object.keys(BRASIL_STATES_DATA).length}
         </span>
         <span className="pb-0.5 min-w-0">
           <span className="block font-heading font-semibold text-xl xl:text-2xl text-blue-950 leading-tight">
-            {isBahia ? 'municípios alcançados na Bahia' : 'estados com presença Educare'}
+            {isBahia ? 'municípios alcançados na Bahia' : 'estados com contratos Educare'}
           </span>
           <span className="block text-sm text-slate-600 tabular-nums">
-            310 mil+ alunos · 1.850+ escolas · 94% de alfabetização
+            Cerca de {TOTAL_CONTRATOS_BRASIL.toLocaleString('pt-BR')} contratos no Brasil, a maior parte na Bahia
           </span>
         </span>
       </div>
@@ -249,7 +250,7 @@ export const MunicipalitySearch: React.FC<MunicipalitySearchProps> = ({
                   <span>
                     <span className="block text-[15px] font-semibold text-slate-900">{s.nome}</span>
                     <span className="block text-xs text-slate-500 tabular-nums">
-                      {s.municipiosAtendidos} municípios atendidos
+                      cerca de {s.contratos.toLocaleString('pt-BR')} contratos
                     </span>
                   </span>
                 </span>

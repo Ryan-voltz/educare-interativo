@@ -19,8 +19,8 @@ const STEPS_BAHIA = [
 ];
 
 const STEPS_BRASIL = [
-  { title: 'Toque no estado', text: 'Em azul, estados com projetos' },
-  { title: 'Veja os números', text: 'Municípios e alunos atendidos' },
+  { title: 'Toque no estado', text: 'Em azul, estados com contratos' },
+  { title: 'Veja os contratos', text: 'Quantos fornecemos no estado' },
   { title: 'Abra a Bahia', text: 'Os 42 municípios baianos' },
 ];
 

@@ -26,3 +26,7 @@ export function telefoneFormatado(): string {
   const meio = resto.length - 4;
   return `+${ddi} ${ddd} ${resto.slice(0, meio)}-${resto.slice(meio)}`;
 }
+
+/** Site da Atacado GE, exibido junto do QR code */
+export const SITE_ATACADO_GE = 'atacadoge.com.br';
+export const SITE_ATACADO_GE_URL = 'https://atacadoge.com.br';
