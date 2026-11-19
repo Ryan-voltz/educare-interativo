@@ -3,13 +3,11 @@ import { Header } from './components/Header';
 import { BahiaMap } from './components/BahiaMap';
 import { BrasilMap } from './components/BrasilMap';
 import { MetricsCard } from './components/MetricsCard';
-import { MunicipalityDrawer } from './components/MunicipalityDrawer';
-import { FolderModal } from './components/FolderModal';
-import { VideoModal } from './components/VideoModal';
+import { AudioDemandModal } from './components/AudioDemandModal';
 import { StateModal } from './components/StateModal';
 import { ProposalModal } from './components/ProposalModal';
 import type { MunicipalityCase, StateCase } from './data/educareData';
-import { Sparkles, MapPin, Award, CheckCircle2 } from 'lucide-react';
+import { Sparkles, MapPin } from 'lucide-react';
 import { sounds } from './utils/audio';
 
 export function App() {
@@ -21,9 +19,7 @@ export function App() {
   const [selectedMunicipality, setSelectedMunicipality] = useState<MunicipalityCase | null>(null);
   const [selectedState, setSelectedState] = useState<StateCase | null>(null);
 
-  // Modals
-  const [folderMunicipality, setFolderMunicipality] = useState<MunicipalityCase | null>(null);
-  const [videoMunicipality, setVideoMunicipality] = useState<MunicipalityCase | null>(null);
+  // Proposal Modal
   const [isProposalOpen, setIsProposalOpen] = useState(false);
   const [proposalMunicipality, setProposalMunicipality] = useState<MunicipalityCase | null>(null);
 
@@ -51,7 +47,7 @@ export function App() {
               <Sparkles className="w-4 h-4" />
             </span>
             <span>
-              <strong className="text-orange-400">Undime Bahia 2026:</strong> Toque nos municípios destacados para explorar livros, materiais didáticos e resultados das redes parceiras do Grupo Educare.
+              <strong className="text-orange-400">Undime Bahia 2026:</strong> Toque no município no mapa para abrir na hora o <strong className="text-white">Folder dos Livros/Materiais</strong>, o <strong className="text-white">Vídeo do Case</strong> e a <strong className="text-white">Data de Fornecimento</strong>.
             </span>
           </div>
 
@@ -75,14 +71,17 @@ export function App() {
                 <span>{viewMode === 'bahia' ? 'Território da Bahia • Malha Oficial IBGE' : 'Presença Nacional • Brasil'}</span>
               </div>
               <div className="text-xs text-slate-500 font-medium">
-                {viewMode === 'bahia' ? '42 redes em destaque' : '10 estados parceiros'}
+                {viewMode === 'bahia' ? 'Toque em qualquer município para abrir o material' : '10 estados parceiros'}
               </div>
             </div>
 
             {viewMode === 'bahia' ? (
               <BahiaMap
                 selectedMunicipalityId={selectedMunicipality ? selectedMunicipality.id : null}
-                onSelectMunicipality={(m) => setSelectedMunicipality(m)}
+                onSelectMunicipality={(m) => {
+                  sounds.playTap();
+                  setSelectedMunicipality(m);
+                }}
                 searchTerm={searchTerm}
               />
             ) : (
@@ -103,7 +102,10 @@ export function App() {
               viewMode={viewMode}
               searchTerm={searchTerm}
               onSearchChange={setSearchTerm}
-              onSelectMunicipality={(m) => setSelectedMunicipality(m)}
+              onSelectMunicipality={(m) => {
+                sounds.playTap();
+                setSelectedMunicipality(m);
+              }}
               onSelectState={(s) => setSelectedState(s)}
               activeFilter={activeFilter}
               onFilterChange={setActiveFilter}
@@ -115,7 +117,6 @@ export function App() {
 
       {/* Modern Footer with Organic Educare Brand Arc */}
       <footer className="mt-auto bg-white border-t border-slate-200/90 pt-6 pb-8 relative overflow-hidden">
-        {/* Iconic brand color curves matching the slide footer */}
         <div className="absolute top-0 left-0 w-64 h-2.5 bg-gradient-to-r from-blue-900 via-blue-600 to-sky-400 rounded-r-full"></div>
         <div className="absolute top-0 right-0 w-64 h-2.5 bg-gradient-to-l from-emerald-600 via-green-500 to-lime-400 rounded-l-full"></div>
 
@@ -134,14 +135,14 @@ export function App() {
         </div>
       </footer>
 
-      {/* Executive Dossier Drawer */}
-      <MunicipalityDrawer
-        municipality={selectedMunicipality}
-        onClose={() => setSelectedMunicipality(null)}
-        onOpenFolder={(m) => setFolderMunicipality(m)}
-        onOpenVideo={(m) => setVideoMunicipality(m)}
-        onOpenProposal={(m) => handleOpenProposal(m)}
-      />
+      {/* Direct Audio-Demanded Modal: Folder + Video + Date of Supply */}
+      {selectedMunicipality && (
+        <AudioDemandModal
+          municipality={selectedMunicipality}
+          onClose={() => setSelectedMunicipality(null)}
+          onOpenProposal={(m) => handleOpenProposal(m)}
+        />
+      )}
 
       {/* State Modal (Brasil Mode) */}
       <StateModal
@@ -152,22 +153,6 @@ export function App() {
           setViewMode('bahia');
         }}
       />
-
-      {/* Pedagogical Folder PDF Reader Modal */}
-      {folderMunicipality && (
-        <FolderModal
-          municipality={folderMunicipality}
-          onClose={() => setFolderMunicipality(null)}
-        />
-      )}
-
-      {/* Video Case Player Modal */}
-      {videoMunicipality && (
-        <VideoModal
-          municipality={videoMunicipality}
-          onClose={() => setVideoMunicipality(null)}
-        />
-      )}
 
       {/* Real-time Proposal Configurator Modal */}
       {isProposalOpen && (
