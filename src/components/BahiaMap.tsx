@@ -202,10 +202,13 @@ export const BahiaMap: React.FC<BahiaMapProps> = ({
                 searchTerm.trim().length > 1 &&
                 name.toLowerCase().includes(searchTerm.toLowerCase());
 
-              // Mais de 300 dos 417 municípios já foram atendidos. Sem a lista exata, todos aparecem em azul
-              let fillColor = matchesRegion
-                ? 'fill-blue-600 hover:fill-blue-400'
-                : 'fill-blue-200 hover:fill-blue-300';
+              // Sem a lista dos municípios atendidos, o mapa fica neutro (pedido do cliente)
+              let fillColor =
+                activeRegion === 'all'
+                  ? 'fill-slate-200 hover:fill-blue-200'
+                  : matchesRegion
+                    ? 'fill-blue-100 hover:fill-blue-200'
+                    : 'fill-slate-100 hover:fill-slate-200';
               let strokeColor = 'stroke-white';
               let strokeWidth = 0.5;
               let filter = '';
@@ -255,10 +258,10 @@ export const BahiaMap: React.FC<BahiaMapProps> = ({
   );
 
   const legend = [
-    { label: 'Município da Bahia', swatch: 'bg-blue-600' },
+    { label: 'Município', swatch: 'bg-slate-200' },
     { label: 'Selecionado', swatch: 'bg-amber-400 ring-1 ring-blue-950' },
     { label: 'Resultado da busca', swatch: 'bg-amber-300' },
-    { label: 'Fora da região', swatch: 'bg-blue-200' },
+    { label: 'Região escolhida', swatch: 'bg-blue-100' },
   ];
 
   return (
