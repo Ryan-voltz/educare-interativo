@@ -61,20 +61,3 @@ export function municipioCase(m: MunicipioBahia): MunicipalityCase {
   };
 }
 
-/**
- * Pedido do cliente (áudio de 19/11/2026): na Bahia, marcar "300 e poucos" municípios
- * de forma aleatória, já que a lista oficial não foi enviada. A escolha é fixa (sempre os
- * mesmos), sorteada por um hash do código IBGE. Quando chegar a lista real, troque este Set.
- */
-const TOTAL_MARCADOS_BAHIA = 320;
-const hash = (s: string) => {
-  let h = 2166136261;
-  for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619);
-  return h >>> 0;
-};
-export const MUNICIPIOS_MARCADOS_BAHIA = new Set(
-  [...MUNICIPIOS_BAHIA]
-    .sort((a, b) => hash(a.id) - hash(b.id))
-    .slice(0, TOTAL_MARCADOS_BAHIA)
-    .map((m) => m.id),
-);
