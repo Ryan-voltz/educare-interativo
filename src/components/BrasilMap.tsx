@@ -7,6 +7,7 @@ const brasilGeoJson = rewindForD3(brasilGeoRaw as any);
 import {
   BRASIL_STATES_DATA,
   CONTRATOS_ESTADOS_ESTIMADOS,
+  MUNICIPIOS_MARCADOS,
   TOTAL_CONTRATOS_BRASIL,
   type StateCase,
 } from '../data/educareData';
@@ -42,12 +43,21 @@ export const BrasilMap: React.FC<BrasilMapProps> = ({
   const width = 800;
   const height = 700;
 
-  const { pathGenerator } = useMemo(() => {
+  const { pathGenerator, projection } = useMemo(() => {
     const proj = d3Geo.geoMercator();
     proj.fitExtent([[30, 30], [width - 30, height - 30]], brasilGeoJson as any);
     const pathGen = d3Geo.geoPath().projection(proj);
-    return { pathGenerator: pathGen };
+    return { pathGenerator: pathGen, projection: proj };
   }, [width, height]);
+
+  // Municípios citados pelo cliente (fora da Bahia), marcados no mapa
+  const municipioPins = useMemo(
+    () =>
+      MUNICIPIOS_MARCADOS.map((m) => ({ ...m, xy: projection([m.lon, m.lat]) as [number, number] })).filter(
+        (m) => m.xy,
+      ),
+    [projection],
+  );
 
   // Pre-computed states for 60fps performance
   const precomputedFeatures = useMemo(() => {
@@ -144,6 +154,10 @@ export const BrasilMap: React.FC<BrasilMapProps> = ({
       <div className="absolute top-4 right-4 z-20 hidden sm:flex items-center gap-2 bg-white px-4 py-2 rounded-2xl shadow-elevated border border-slate-200 text-sm font-semibold text-blue-950">
         <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
         {Object.keys(BRASIL_STATES_DATA).length} estados · cerca de {TOTAL_CONTRATOS_BRASIL.toLocaleString('pt-BR')} contratos
+      </div>
+      <div className="absolute top-[3.75rem] right-4 z-20 hidden sm:flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl shadow-elevated border border-slate-200 text-xs font-medium text-slate-700">
+        <span className="w-2.5 h-2.5 rounded-full bg-orange-500 ring-2 ring-white shadow" />
+        Municípios atendidos fora da Bahia
       </div>
 
       {/* Bottom Hint */}
@@ -252,6 +266,17 @@ export const BrasilMap: React.FC<BrasilMapProps> = ({
                 </g>
               );
             })}
+
+            {/* Municípios citados pelo cliente */}
+            {municipioPins.map((m) => (
+              <g
+                key={`mun-${m.uf}-${m.nome}`}
+                transform={`translate(${m.xy[0]}, ${m.xy[1]}) scale(${1 / Math.sqrt(zoomLevel)})`}
+              >
+                <title>{`${m.nome} (${m.uf})`}</title>
+                <circle r={4.5} className="fill-orange-500 stroke-white" strokeWidth={1.5} />
+              </g>
+            ))}
           </g>
         </svg>
       </div>

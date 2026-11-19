@@ -5,7 +5,7 @@ import { rewindForD3 } from '../utils/geo';
 
 const bahiaGeoJson = rewindForD3(bahiaGeoRaw as any);
 import type { MunicipalityCase } from '../data/educareData';
-import { municipioCase, nomeRegiao } from '../data/municipiosBahia';
+import { municipioCase, nomeRegiao, MUNICIPIOS_MARCADOS_BAHIA } from '../data/municipiosBahia';
 import { sounds } from '../utils/audio';
 import {
   ZoomIn,
@@ -202,10 +202,15 @@ export const BahiaMap: React.FC<BahiaMapProps> = ({
                 searchTerm.trim().length > 1 &&
                 name.toLowerCase().includes(searchTerm.toLowerCase());
 
-              // Mais de 300 dos 417 municípios já foram atendidos. Sem a lista exata, todos aparecem em azul
-              let fillColor = matchesRegion
-                ? 'fill-blue-600 hover:fill-blue-400'
-                : 'fill-blue-200 hover:fill-blue-300';
+              // ~320 municípios marcados (escolha aleatória fixa, pedido do cliente)
+              const isMarked = MUNICIPIOS_MARCADOS_BAHIA.has(code);
+              let fillColor = isMarked
+                ? matchesRegion
+                  ? 'fill-blue-600 hover:fill-blue-500'
+                  : 'fill-blue-200 hover:fill-blue-300'
+                : matchesRegion
+                  ? 'fill-slate-200 hover:fill-slate-300'
+                  : 'fill-slate-100 hover:fill-slate-200';
               let strokeColor = 'stroke-white';
               let strokeWidth = 0.5;
               let filter = '';
@@ -255,10 +260,10 @@ export const BahiaMap: React.FC<BahiaMapProps> = ({
   );
 
   const legend = [
-    { label: 'Município da Bahia', swatch: 'bg-blue-600' },
+    { label: 'Município atendido', swatch: 'bg-blue-600' },
     { label: 'Selecionado', swatch: 'bg-amber-400 ring-1 ring-blue-950' },
     { label: 'Resultado da busca', swatch: 'bg-amber-300' },
-    { label: 'Fora da região', swatch: 'bg-blue-200' },
+    { label: 'Demais municípios', swatch: 'bg-slate-200' },
   ];
 
   return (

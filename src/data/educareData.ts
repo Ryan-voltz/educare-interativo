@@ -904,6 +904,20 @@ export const BAHIA_MUNICIPALITIES_DATA: Record<string, MunicipalityCase> = {
  * números quando chegar a lista oficial e mude CONTRATOS_ESTADOS_ESTIMADOS para false.
  */
 export const CONTRATOS_ESTADOS_ESTIMADOS = true;
+
+/**
+ * Municípios fora da Bahia que o cliente citou nominalmente: aparecem marcados no mapa do Brasil.
+ * Coordenadas: sede municipal (IBGE). PE: o cliente escreveu "São Miguel do Belmonte", que não
+ * existe; usamos São José do Belmonte até confirmar. RJ: 2 municípios, nomes ainda não informados.
+ */
+export const MUNICIPIOS_MARCADOS: { nome: string; uf: string; lon: number; lat: number }[] = [
+  { nome: 'Arauá', uf: 'SE', lon: -37.6201, lat: -11.2614 },
+  { nome: 'Pedrinhas', uf: 'SE', lon: -37.6775, lat: -11.1902 },
+  { nome: 'Salgado', uf: 'SE', lon: -37.4804, lat: -11.0288 },
+  { nome: 'Umbaúba', uf: 'SE', lon: -37.6623, lat: -11.3809 },
+  { nome: 'São José do Belmonte', uf: 'PE', lon: -38.7577, lat: -7.85723 },
+  { nome: 'Monte Negro', uf: 'RO', lon: -63.29, lat: -10.2458 },
+];
 export const TOTAL_CONTRATOS_BRASIL = 2000;
 
 export const BRASIL_STATES_DATA: Record<string, StateCase> = {
