@@ -21,7 +21,7 @@ export interface MunicipioBahia {
 
 /**
  * Os 417 municípios da Bahia, em ordem alfabética.
- * O Grupo Educare já atendeu mais de 400 deles, então o mapa mostra todos como atendidos.
+ * O Grupo Educare já atendeu mais de 300 deles (número informado pelo cliente).
  */
 export const MUNICIPIOS_BAHIA: MunicipioBahia[] = (bahiaGeoRaw as any).features
   .map((f: any) => ({
@@ -31,7 +31,7 @@ export const MUNICIPIOS_BAHIA: MunicipioBahia[] = (bahiaGeoRaw as any).features
   }))
   .sort((a: MunicipioBahia, b: MunicipioBahia) => a.name.localeCompare(b.name, 'pt-BR'));
 
-export const MUNICIPIOS_ATENDIDOS_BAHIA = '400+';
+export const MUNICIPIOS_ATENDIDOS_BAHIA = '300+';
 
 export function nomeRegiao(meso: string) {
   return NOME_REGIAO[meso] || meso || 'Bahia';

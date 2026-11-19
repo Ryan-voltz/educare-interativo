@@ -899,7 +899,7 @@ export const BAHIA_MUNICIPALITIES_DATA: Record<string, MunicipalityCase> = {
 // Estados Brasileiros com presença e expansão do Grupo Educare
 /**
  * Presença nacional informada pelo cliente (19/11/2026): cerca de 2.000 contratos
- * em 10 estados. Bahia é a maior parte (mais de 400 municípios), Maranhão o segundo;
+ * em 10 estados. Bahia é a maior parte (mais de 300 municípios), Maranhão o segundo;
  * Santa Catarina e Paraná têm menos de 5 cada; RJ (2 municípios), PE (1), SE (4) e RO (1). A divisão exata por estado ainda é ESTIMADA: troque os
  * números quando chegar a lista oficial e mude CONTRATOS_ESTADOS_ESTIMADOS para false.
  */
@@ -913,7 +913,7 @@ export const BRASIL_STATES_DATA: Record<string, StateCase> = {
     regiao: 'Nordeste',
     active: true,
     contratos: 1292,
-    municipiosAtendidos: 400,
+    municipiosAtendidos: 300,
     destaque: 'Maior presença do Grupo Educare: a maior parte dos contratos está em municípios baianos.',
   },
   MA: {

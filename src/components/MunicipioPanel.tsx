@@ -9,7 +9,7 @@ interface MunicipioPanelProps {
 }
 
 /**
- * Ao tocar em um município, mostra o nome e que a rede é atendida.
+ * Ao tocar em um município, mostra o nome e a presença do Grupo Educare na Bahia.
  * O número de contratos aparece só por estado, na visão Brasil (pedido do cliente).
  */
 export const MunicipioPanel: React.FC<MunicipioPanelProps> = ({ municipality, onClose }) => {
@@ -62,10 +62,10 @@ export const MunicipioPanel: React.FC<MunicipioPanelProps> = ({ municipality, on
             </span>
             <span>
               <span className="block font-heading font-semibold text-2xl text-blue-950 leading-tight">
-                Rede atendida pelo Grupo Educare
+                Grupo Educare na Bahia
               </span>
               <span className="block text-slate-600 mt-1.5 leading-snug">
-                A Bahia é o estado com mais contratos do Grupo Educare, com mais de 400 municípios atendidos.
+                A Bahia é o estado com mais contratos do Grupo Educare, com mais de 300 municípios atendidos.
               </span>
             </span>
           </div>
