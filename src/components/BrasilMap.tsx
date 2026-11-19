@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useRef, useCallback } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import * as d3Geo from 'd3-geo';
 import brasilGeoRaw from '../data/brasil-geo.json';
 import { rewindForD3 } from '../utils/geo';
@@ -12,6 +12,7 @@ import {
   type StateCase,
 } from '../data/educareData';
 import { sounds } from '../utils/audio';
+import { useMapZoom } from '../hooks/useMapZoom';
 import { ZoomIn, ZoomOut, RotateCcw, MapPin, ArrowRight } from 'lucide-react';
 
 interface BrasilMapProps {
@@ -33,15 +34,9 @@ export const BrasilMap: React.FC<BrasilMapProps> = ({
     y: number;
   } | null>(null);
 
-  const [zoomLevel, setZoomLevel] = useState(1);
-  const [pan, setPan] = useState({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState(false);
-
-  const dragStartRef = useRef<{ x: number; y: number } | null>(null);
-  const rafRef = useRef<number | null>(null);
-
   const width = 800;
   const height = 700;
+  const { svgRef, zoomLevel, pan, transition, dragging, zoomBy, reset, ignoreClick } = useMapZoom(width, height);
 
   const { pathGenerator, projection } = useMemo(() => {
     const proj = d3Geo.geoMercator();
@@ -87,41 +82,18 @@ export const BrasilMap: React.FC<BrasilMapProps> = ({
       }));
   }, [precomputedFeatures]);
 
-  const handleZoom = useCallback((factor: number) => {
-    sounds.playTap();
-    setZoomLevel((prev) => Math.min(Math.max(prev * factor, 0.8), 4));
-  }, []);
+  const handleZoom = useCallback(
+    (factor: number) => {
+      sounds.playTap();
+      zoomBy(factor);
+    },
+    [zoomBy],
+  );
 
   const handleResetZoom = useCallback(() => {
     sounds.playTap();
-    setZoomLevel(1);
-    setPan({ x: 0, y: 0 });
-  }, []);
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    setIsDragging(true);
-    dragStartRef.current = { x: e.clientX - pan.x, y: e.clientY - pan.y };
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (isDragging && dragStartRef.current) {
-      const clientX = e.clientX;
-      const clientY = e.clientY;
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-      rafRef.current = requestAnimationFrame(() => {
-        if (!dragStartRef.current) return;
-        setPan({
-          x: clientX - dragStartRef.current.x,
-          y: clientY - dragStartRef.current.y,
-        });
-      });
-    }
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-    if (rafRef.current) cancelAnimationFrame(rafRef.current);
-  };
+    reset();
+  }, [reset]);
 
   return (
     <div className="relative w-full h-full bg-white rounded-3xl border border-slate-200 shadow-elevated overflow-hidden select-none flex flex-col">
@@ -167,18 +139,11 @@ export const BrasilMap: React.FC<BrasilMapProps> = ({
       </div>
 
       {/* Interactive SVG */}
-      <div className="flex-1 min-h-0 w-full relative cursor-grab active:cursor-grabbing">
-        <svg
-          viewBox={`0 0 ${width} ${height}`}
-          className="w-full h-full"
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
-        >
+      <div className={`flex-1 min-h-0 w-full relative ${dragging ? 'cursor-grabbing' : 'cursor-grab'}`}>
+        <svg ref={svgRef} viewBox={`0 0 ${width} ${height}`} className="w-full h-full touch-none">
           <g
             transform={`translate(${pan.x}, ${pan.y}) scale(${zoomLevel})`}
-            style={{ transformOrigin: 'center center' }}
+            style={{ transformOrigin: 'center center', transition }}
           >
             {precomputedFeatures.map((item) => {
               const { sigla, nome, pathD } = item;
@@ -214,6 +179,7 @@ export const BrasilMap: React.FC<BrasilMapProps> = ({
                   className={`${fillColor} ${strokeColor} stroke-[${strokeWidth}] transition-colors duration-150 ease-out cursor-pointer`}
                   onClick={(e) => {
                     e.stopPropagation();
+                    if (ignoreClick()) return;
                     sounds.playTap();
                     if (isBahia) {
                       onDrillDownBahia();
