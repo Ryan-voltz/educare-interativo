@@ -5,7 +5,7 @@ import { rewindForD3 } from '../utils/geo';
 
 const bahiaGeoJson = rewindForD3(bahiaGeoRaw as any);
 import type { MunicipalityCase } from '../data/educareData';
-import { municipioCase, nomeRegiao } from '../data/municipiosBahia';
+import { municipioCase, nomeRegiao, MUNICIPIOS_MARCADOS_BAHIA } from '../data/municipiosBahia';
 import { sounds } from '../utils/audio';
 import {
   ZoomIn,
@@ -202,14 +202,15 @@ export const BahiaMap: React.FC<BahiaMapProps> = ({
                 searchTerm.trim().length > 1 &&
                 name.toLowerCase().includes(searchTerm.toLowerCase());
 
-              // Só ficam marcados os municípios citados pelo cliente; na Bahia nenhum foi citado
-              // por nome, então o mapa fica neutro e o "300+" fica só no contador
-              let fillColor =
-                activeRegion === 'all'
-                  ? 'fill-slate-200 hover:fill-blue-200'
-                  : matchesRegion
-                    ? 'fill-blue-100 hover:fill-blue-200'
-                    : 'fill-slate-100 hover:fill-slate-200';
+              // ~320 municípios marcados (escolha aleatória fixa, pedido do cliente)
+              const isMarked = MUNICIPIOS_MARCADOS_BAHIA.has(code);
+              let fillColor = isMarked
+                ? matchesRegion
+                  ? 'fill-blue-600 hover:fill-blue-500'
+                  : 'fill-blue-200 hover:fill-blue-300'
+                : matchesRegion
+                  ? 'fill-slate-200 hover:fill-slate-300'
+                  : 'fill-slate-100 hover:fill-slate-200';
               let strokeColor = 'stroke-white';
               let strokeWidth = 0.5;
               let filter = '';
@@ -259,10 +260,10 @@ export const BahiaMap: React.FC<BahiaMapProps> = ({
   );
 
   const legend = [
-    { label: 'Município', swatch: 'bg-slate-200' },
+    { label: 'Município atendido', swatch: 'bg-blue-600' },
     { label: 'Selecionado', swatch: 'bg-amber-400 ring-1 ring-blue-950' },
     { label: 'Resultado da busca', swatch: 'bg-amber-300' },
-    { label: 'Região escolhida', swatch: 'bg-blue-100' },
+    { label: 'Demais municípios', swatch: 'bg-slate-200' },
   ];
 
   return (
