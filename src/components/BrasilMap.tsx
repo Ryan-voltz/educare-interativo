@@ -1,8 +1,9 @@
-import React, { useMemo, useState, useRef } from 'react';
+import React, { useMemo, useState, useRef, useCallback } from 'react';
 import * as d3Geo from 'd3-geo';
 import brasilGeoJson from '../data/brasil-geo.json';
 import { BRASIL_STATES_DATA, type StateCase } from '../data/educareData';
-import { ZoomIn, ZoomOut, RotateCcw, MapPin, Sparkles } from 'lucide-react';
+import { sounds } from '../utils/audio';
+import { ZoomIn, ZoomOut, RotateCcw, MapPin, Sparkles, ArrowRight } from 'lucide-react';
 
 interface BrasilMapProps {
   selectedStateSigla: string | null;
@@ -26,7 +27,9 @@ export const BrasilMap: React.FC<BrasilMapProps> = ({
   const [zoomLevel, setZoomLevel] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
+
   const dragStartRef = useRef<{ x: number; y: number } | null>(null);
+  const rafRef = useRef<number | null>(null);
 
   const width = 800;
   const height = 700;
@@ -38,18 +41,44 @@ export const BrasilMap: React.FC<BrasilMapProps> = ({
     return { pathGenerator: pathGen };
   }, [width, height]);
 
-  const features = useMemo(() => {
-    return (brasilGeoJson as any).features || [];
+  // Pre-computed states for 60fps performance
+  const precomputedFeatures = useMemo(() => {
+    const rawFeatures = (brasilGeoJson as any).features || [];
+    return rawFeatures.map((f: any) => {
+      const sigla = f.properties.sigla || '';
+      const nome = f.properties.nome || '';
+      const pathD = pathGenerator(f) || '';
+      const centroid = pathGenerator.centroid(f);
+      const isValid = !isNaN(centroid[0]) && !isNaN(centroid[1]);
+
+      return {
+        sigla,
+        nome,
+        pathD,
+        centroid: isValid ? centroid : null,
+      };
+    });
+  }, [pathGenerator]);
+
+  const activeCentroids = useMemo(() => {
+    return precomputedFeatures
+      .filter((f) => f.centroid && BRASIL_STATES_DATA[f.sigla])
+      .map((f) => ({
+        sigla: f.sigla,
+        centroid: f.centroid as [number, number],
+      }));
+  }, [precomputedFeatures]);
+
+  const handleZoom = useCallback((factor: number) => {
+    sounds.playTap();
+    setZoomLevel((prev) => Math.min(Math.max(prev * factor, 0.8), 4));
   }, []);
 
-  const handleZoom = (factor: number) => {
-    setZoomLevel((prev) => Math.min(Math.max(prev * factor, 0.8), 4));
-  };
-
-  const handleResetZoom = () => {
+  const handleResetZoom = useCallback(() => {
+    sounds.playTap();
     setZoomLevel(1);
     setPan({ x: 0, y: 0 });
-  };
+  }, []);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     setIsDragging(true);
@@ -58,174 +87,191 @@ export const BrasilMap: React.FC<BrasilMapProps> = ({
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (isDragging && dragStartRef.current) {
-      setPan({
-        x: e.clientX - dragStartRef.current.x,
-        y: e.clientY - dragStartRef.current.y,
+      const clientX = e.clientX;
+      const clientY = e.clientY;
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      rafRef.current = requestAnimationFrame(() => {
+        if (!dragStartRef.current) return;
+        setPan({
+          x: clientX - dragStartRef.current.x,
+          y: clientY - dragStartRef.current.y,
+        });
       });
     }
   };
 
   const handleMouseUp = () => {
     setIsDragging(false);
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
   };
 
   return (
-    <div className="relative w-full h-[620px] lg:h-[700px] bg-gradient-to-b from-sky-50/50 via-white to-slate-100 rounded-3xl border border-slate-200/80 shadow-inner overflow-hidden select-none">
+    <div className="relative w-full h-[650px] lg:h-[750px] bg-gradient-to-br from-slate-50 via-white to-sky-50/70 rounded-3xl border border-slate-200/90 shadow-elevated overflow-hidden select-none flex flex-col">
       {/* Map Controls */}
-      <div className="absolute top-4 left-4 z-20 flex flex-col gap-2 bg-white/90 backdrop-blur-md p-1.5 rounded-2xl shadow-md border border-slate-200/80">
+      <div className="absolute top-4 left-4 z-20 flex flex-col gap-1.5 bg-white/95 backdrop-blur-md p-1.5 rounded-2xl shadow-md border border-slate-200">
         <button
-          onClick={() => handleZoom(1.25)}
-          className="p-2.5 text-slate-700 hover:text-sky-700 hover:bg-sky-50 rounded-xl transition-all duration-200 active:scale-95"
+          onClick={() => handleZoom(1.3)}
+          className="p-2.5 text-slate-700 hover:text-blue-900 hover:bg-sky-50 rounded-xl transition-all active:scale-90"
           title="Aumentar Zoom"
         >
-          <ZoomIn className="w-5 h-5" />
+          <ZoomIn className="w-4 h-4" />
         </button>
         <button
-          onClick={() => handleZoom(0.8)}
-          className="p-2.5 text-slate-700 hover:text-sky-700 hover:bg-sky-50 rounded-xl transition-all duration-200 active:scale-95"
+          onClick={() => handleZoom(0.75)}
+          className="p-2.5 text-slate-700 hover:text-blue-900 hover:bg-sky-50 rounded-xl transition-all active:scale-90"
           title="Diminuir Zoom"
         >
-          <ZoomOut className="w-5 h-5" />
+          <ZoomOut className="w-4 h-4" />
         </button>
         <button
           onClick={handleResetZoom}
-          className="p-2.5 text-slate-700 hover:text-sky-700 hover:bg-sky-50 rounded-xl transition-all duration-200 active:scale-95"
-          title="Restaurar Visualização"
+          className="p-2.5 text-slate-700 hover:text-blue-900 hover:bg-sky-50 rounded-xl transition-all active:scale-90"
+          title="Restaurar Visão Geral"
         >
-          <RotateCcw className="w-5 h-5" />
+          <RotateCcw className="w-4 h-4" />
         </button>
       </div>
 
       {/* Map Badge Status */}
-      <div className="absolute top-4 right-4 z-20 hidden sm:flex items-center gap-2 bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-2xl shadow-sm border border-slate-200 text-xs font-semibold text-slate-600">
+      <div className="absolute top-4 right-4 z-20 hidden sm:flex items-center gap-2 bg-white/95 backdrop-blur-md px-4 py-2 rounded-2xl shadow-xs border border-slate-200 text-xs font-bold text-blue-950">
         <span className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
         <span>10 Estados Alcançados no Brasil</span>
       </div>
 
-      <div className="absolute bottom-4 left-4 z-20 flex items-center gap-2 bg-slate-900/80 text-white backdrop-blur-md px-3 py-1.5 rounded-xl text-xs font-medium shadow-lg pointer-events-none">
+      {/* Bottom Hint */}
+      <div className="absolute bottom-4 left-4 z-20 flex items-center gap-2 bg-slate-950/90 text-white backdrop-blur-md px-4 py-2 rounded-2xl text-xs font-semibold shadow-lg pointer-events-none">
         <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-        <span>Selecione um estado para ver a presença ou clique na Bahia para detalhar os municípios</span>
+        <span>Selecione um estado para ver a presença ou clique na Bahia para abrir os municípios</span>
       </div>
 
-      <svg
-        viewBox={`0 0 ${width} ${height}`}
-        className="w-full h-full cursor-grab active:cursor-grabbing transition-transform duration-75"
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-      >
-        <g
-          transform={`translate(${pan.x}, ${pan.y}) scale(${zoomLevel})`}
-          style={{ transformOrigin: 'center center' }}
+      {/* Interactive SVG */}
+      <div className="flex-1 w-full h-full relative cursor-grab active:cursor-grabbing">
+        <svg
+          viewBox={`0 0 ${width} ${height}`}
+          className="w-full h-full"
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
         >
-          {features.map((feature: any) => {
-            const sigla = feature.properties.sigla || '';
-            const nome = feature.properties.nome || '';
-            const stateData = BRASIL_STATES_DATA[sigla];
-            const isActive = !!stateData;
-            const isSelected = selectedStateSigla === sigla;
-            const isBahia = sigla === 'BA';
+          <g
+            transform={`translate(${pan.x}, ${pan.y}) scale(${zoomLevel})`}
+            style={{ transformOrigin: 'center center' }}
+          >
+            {precomputedFeatures.map((item) => {
+              const { sigla, nome, pathD } = item;
+              if (!pathD) return null;
 
-            const d = pathGenerator(feature);
-            if (!d) return null;
+              const stateData = BRASIL_STATES_DATA[sigla];
+              const isActive = !!stateData;
+              const isSelected = selectedStateSigla === sigla;
+              const isBahia = sigla === 'BA';
 
-            return (
-              <path
-                key={sigla}
-                d={d}
-                className={`transition-colors duration-200 ease-out cursor-pointer ${
-                  isSelected
-                    ? 'fill-amber-500 stroke-amber-700 stroke-[2] drop-shadow-lg'
-                    : isBahia
-                    ? 'fill-blue-700 hover:fill-blue-600 stroke-amber-300 stroke-[2]'
-                    : isActive
-                    ? 'fill-sky-600 hover:fill-sky-500 stroke-white stroke-[1]'
-                    : 'fill-slate-200/90 hover:fill-slate-300 stroke-white stroke-[0.8]'
-                }`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (isBahia) {
-                    onDrillDownBahia();
-                  } else if (stateData) {
-                    onSelectState(stateData);
-                  }
-                }}
-                onMouseEnter={(e) => {
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  setHoveredState({
-                    sigla,
-                    nome,
-                    data: stateData,
-                    x: rect.x + rect.width / 2,
-                    y: rect.y - 10,
-                  });
-                }}
-                onMouseLeave={() => setHoveredState(null)}
-              />
-            );
-          })}
+              let fillColor = 'fill-slate-200/90 hover:fill-slate-300';
+              let strokeColor = 'stroke-white';
+              let strokeWidth = '0.8';
 
-          {/* State centroid labels for active states */}
-          {features
-            .filter((f: any) => BRASIL_STATES_DATA[f.properties.sigla])
-            .map((feature: any) => {
-              const sigla = feature.properties.sigla;
-              const centroid = pathGenerator.centroid(feature);
-              if (isNaN(centroid[0]) || isNaN(centroid[1])) return null;
+              if (isSelected) {
+                fillColor = 'fill-orange-500';
+                strokeColor = 'stroke-orange-950';
+                strokeWidth = '2.5';
+              } else if (isBahia) {
+                fillColor = 'fill-blue-800 hover:fill-blue-700';
+                strokeColor = 'stroke-amber-400';
+                strokeWidth = '2';
+              } else if (isActive) {
+                fillColor = 'fill-sky-700 hover:fill-sky-600';
+                strokeColor = 'stroke-white';
+                strokeWidth = '1.2';
+              }
+
+              return (
+                <path
+                  key={sigla}
+                  d={pathD}
+                  className={`${fillColor} ${strokeColor} stroke-[${strokeWidth}] transition-colors duration-150 ease-out cursor-pointer`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    sounds.playTap();
+                    if (isBahia) {
+                      onDrillDownBahia();
+                    } else if (stateData) {
+                      onSelectState(stateData);
+                    }
+                  }}
+                  onMouseEnter={(e) => {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    setHoveredState({
+                      sigla,
+                      nome,
+                      data: stateData,
+                      x: rect.x + rect.width / 2,
+                      y: rect.y - 12,
+                    });
+                  }}
+                  onMouseLeave={() => setHoveredState(null)}
+                />
+              );
+            })}
+
+            {/* State Badges on centroids */}
+            {activeCentroids.map((item) => {
+              const isBahia = item.sigla === 'BA';
 
               return (
                 <g
-                  key={`label-${sigla}`}
-                  transform={`translate(${centroid[0]}, ${centroid[1]})`}
+                  key={`label-${item.sigla}`}
+                  transform={`translate(${item.centroid[0]}, ${item.centroid[1]})`}
                   className="pointer-events-none"
                 >
                   <circle
-                    r={sigla === 'BA' ? 14 : 11}
+                    r={isBahia ? 14 : 11}
                     className={`${
-                      sigla === 'BA'
-                        ? 'fill-amber-400 stroke-blue-900 stroke-2'
-                        : 'fill-white stroke-sky-700 stroke-[1.5]'
+                      isBahia
+                        ? 'fill-amber-400 stroke-blue-950 stroke-2'
+                        : 'fill-white stroke-blue-900 stroke-[1.5]'
                     } drop-shadow`}
                   />
                   <text
                     textAnchor="middle"
                     dy="3.5"
                     className={`font-black ${
-                      sigla === 'BA' ? 'text-[11px] fill-blue-950' : 'text-[9px] fill-sky-900'
+                      isBahia ? 'text-[11px] fill-blue-950' : 'text-[9px] fill-blue-900'
                     }`}
                   >
-                    {sigla}
+                    {item.sigla}
                   </text>
                 </g>
               );
             })}
-        </g>
-      </svg>
+          </g>
+        </svg>
+      </div>
 
       {hoveredState && (
         <div
-          className="fixed pointer-events-none z-50 transform -translate-x-1/2 -translate-y-full mb-3 px-3.5 py-2 bg-slate-900/95 text-white rounded-xl shadow-xl border border-slate-700 text-xs backdrop-blur-md transition-all duration-150"
+          className="fixed pointer-events-none z-50 transform -translate-x-1/2 -translate-y-full mb-3 px-4 py-3 bg-slate-950/95 text-white rounded-2xl shadow-modal border border-slate-700 text-xs backdrop-blur-md transition-all duration-150"
           style={{
             left: `${hoveredState.x}px`,
             top: `${hoveredState.y}px`,
           }}
         >
-          <div className="font-bold text-sm text-sky-300 flex items-center gap-1.5">
+          <div className="font-extrabold text-sm text-sky-300 flex items-center gap-1.5">
             <MapPin className="w-3.5 h-3.5 text-amber-400" />
-            {hoveredState.nome} ({hoveredState.sigla})
+            <span>{hoveredState.nome} ({hoveredState.sigla})</span>
           </div>
           {hoveredState.data ? (
             <div className="mt-1 space-y-0.5">
-              <div className="text-emerald-400 font-semibold">
+              <div className="text-emerald-400 font-bold">
                 {hoveredState.data.municipiosAtendidos} municípios atendidos
               </div>
               <div className="text-slate-300 text-[11px]">
-                {hoveredState.data.alunosImpactados.toLocaleString()} alunos impactados
+                {hoveredState.data.alunosImpactados.toLocaleString()} alunos beneficiados
               </div>
               {hoveredState.sigla === 'BA' && (
-                <div className="text-amber-300 font-bold text-[11px] mt-1">
-                  ⭐ Clique para ver o mapa detalhado da Bahia
+                <div className="text-amber-300 font-black text-[11px] mt-1 flex items-center gap-1">
+                  <span>Toque para explorar os 42 municípios da Bahia</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
                 </div>
               )}
             </div>

@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useRef } from 'react';
+import React, { useMemo, useState, useRef, useCallback } from 'react';
 import * as d3Geo from 'd3-geo';
 import bahiaGeoJson from '../data/bahia-geo.json';
 import { BAHIA_MUNICIPALITIES_DATA, type MunicipalityCase } from '../data/educareData';
@@ -11,7 +11,6 @@ import {
   Sparkles,
   CheckCircle2,
   Compass,
-  Layers,
   ArrowUpRight,
 } from 'lucide-react';
 
@@ -23,13 +22,13 @@ interface BahiaMapProps {
 
 const REGIONAL_PRESETS: { name: string; filter: string; center?: [number, number]; zoom?: number }[] = [
   { name: 'Toda a Bahia', filter: 'all', zoom: 1, center: [0, 0] },
-  { name: 'Metropolitana (RMS)', filter: 'Metropolitana', zoom: 1.8, center: [-140, -40] },
-  { name: 'Portal do Sertão', filter: 'Portal do Sertão', zoom: 1.6, center: [-70, -20] },
-  { name: 'Sul e Extremo Sul', filter: 'Sul', zoom: 1.6, center: [-50, -180] },
-  { name: 'Oeste Baiano', filter: 'Oeste', zoom: 1.5, center: [130, 20] },
-  { name: 'São Francisco', filter: 'Vale do São Francisco', zoom: 1.6, center: [-30, 150] },
-  { name: 'Sudoeste', filter: 'Sudoeste', zoom: 1.6, center: [10, -120] },
-  { name: 'Recôncavo', filter: 'Recôncavo', zoom: 1.7, center: [-80, -30] },
+  { name: 'Metropolitana (RMS)', filter: 'Metropolitana', zoom: 1.85, center: [-150, -40] },
+  { name: 'Portal do Sertão', filter: 'Portal do Sertão', zoom: 1.7, center: [-80, -20] },
+  { name: 'Sul e Extremo Sul', filter: 'Sul', zoom: 1.65, center: [-50, -190] },
+  { name: 'Oeste Baiano', filter: 'Oeste', zoom: 1.55, center: [140, 20] },
+  { name: 'São Francisco', filter: 'Vale do São Francisco', zoom: 1.65, center: [-30, 160] },
+  { name: 'Sudoeste', filter: 'Sudoeste', zoom: 1.65, center: [10, -120] },
+  { name: 'Recôncavo', filter: 'Recôncavo', zoom: 1.8, center: [-90, -30] },
 ];
 
 export const BahiaMap: React.FC<BahiaMapProps> = ({
@@ -42,8 +41,8 @@ export const BahiaMap: React.FC<BahiaMapProps> = ({
     name: string;
     isFeatured: boolean;
     region: string;
-    projectTitle?: string;
     students?: number;
+    contractDate?: string;
     x: number;
     y: number;
   } | null>(null);
@@ -52,11 +51,14 @@ export const BahiaMap: React.FC<BahiaMapProps> = ({
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [activeRegion, setActiveRegion] = useState('all');
   const [isDragging, setIsDragging] = useState(false);
+
   const dragStartRef = useRef<{ x: number; y: number } | null>(null);
+  const rafRef = useRef<number | null>(null);
 
   const width = 850;
   const height = 740;
 
+  // 1. One-time Projection & Path Generator
   const { pathGenerator } = useMemo(() => {
     const proj = d3Geo.geoMercator();
     proj.fitExtent([[35, 35], [width - 35, height - 35]], bahiaGeoJson as any);
@@ -64,23 +66,51 @@ export const BahiaMap: React.FC<BahiaMapProps> = ({
     return { pathGenerator: pathGen };
   }, [width, height]);
 
-  const features = useMemo(() => {
-    return (bahiaGeoJson as any).features || [];
-  }, []);
+  // 2. High-performance Pre-computation: Generate all 417 SVG path strings and centroids ONCE
+  const precomputedFeatures = useMemo(() => {
+    const rawFeatures = (bahiaGeoJson as any).features || [];
+    return rawFeatures.map((f: any) => {
+      const code = String(f.properties.codarea);
+      const name = f.properties.name || '';
+      const meso = f.properties.meso || '';
+      const pathD = pathGenerator(f) || '';
+      const centroid = pathGenerator.centroid(f);
+      const isValidCentroid = !isNaN(centroid[0]) && !isNaN(centroid[1]);
 
-  const handleZoom = (factor: number) => {
+      return {
+        code,
+        name,
+        meso,
+        pathD,
+        centroid: isValidCentroid ? centroid : null,
+      };
+    });
+  }, [pathGenerator]);
+
+  // Centroids for partner cities only (for instant rendering)
+  const partnerCentroids = useMemo(() => {
+    return precomputedFeatures
+      .filter((f) => f.centroid && BAHIA_MUNICIPALITIES_DATA[f.code])
+      .map((f) => ({
+        code: f.code,
+        name: f.name,
+        centroid: f.centroid as [number, number],
+      }));
+  }, [precomputedFeatures]);
+
+  const handleZoom = useCallback((factor: number) => {
     sounds.playTap();
     setZoomLevel((prev) => Math.min(Math.max(prev * factor, 0.8), 5));
-  };
+  }, []);
 
-  const handleResetZoom = () => {
+  const handleResetZoom = useCallback(() => {
     sounds.playTap();
     setZoomLevel(1);
     setPan({ x: 0, y: 0 });
     setActiveRegion('all');
-  };
+  }, []);
 
-  const handleSelectRegion = (preset: typeof REGIONAL_PRESETS[0]) => {
+  const handleSelectRegion = useCallback((preset: typeof REGIONAL_PRESETS[0]) => {
     sounds.playTap();
     setActiveRegion(preset.filter);
     if (preset.zoom && preset.center) {
@@ -90,8 +120,9 @@ export const BahiaMap: React.FC<BahiaMapProps> = ({
       setZoomLevel(1);
       setPan({ x: 0, y: 0 });
     }
-  };
+  }, []);
 
+  // Smooth Throttled Drag Handlers with RequestAnimationFrame
   const handleMouseDown = (e: React.MouseEvent) => {
     setIsDragging(true);
     dragStartRef.current = { x: e.clientX - pan.x, y: e.clientY - pan.y };
@@ -99,15 +130,22 @@ export const BahiaMap: React.FC<BahiaMapProps> = ({
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (isDragging && dragStartRef.current) {
-      setPan({
-        x: e.clientX - dragStartRef.current.x,
-        y: e.clientY - dragStartRef.current.y,
+      const clientX = e.clientX;
+      const clientY = e.clientY;
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      rafRef.current = requestAnimationFrame(() => {
+        if (!dragStartRef.current) return;
+        setPan({
+          x: clientX - dragStartRef.current.x,
+          y: clientY - dragStartRef.current.y,
+        });
       });
     }
   };
 
   const handleMouseUp = () => {
     setIsDragging(false);
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -122,27 +160,34 @@ export const BahiaMap: React.FC<BahiaMapProps> = ({
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (isDragging && dragStartRef.current && e.touches.length === 1) {
-      setPan({
-        x: e.touches[0].clientX - dragStartRef.current.x,
-        y: e.touches[0].clientY - dragStartRef.current.y,
+      const touchX = e.touches[0].clientX;
+      const touchY = e.touches[0].clientY;
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      rafRef.current = requestAnimationFrame(() => {
+        if (!dragStartRef.current) return;
+        setPan({
+          x: touchX - dragStartRef.current.x,
+          y: touchY - dragStartRef.current.y,
+        });
       });
     }
   };
 
   const handleTouchEnd = () => {
     setIsDragging(false);
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
   };
 
   return (
     <div className="relative w-full h-[650px] lg:h-[750px] bg-gradient-to-br from-slate-50 via-white to-sky-50/70 rounded-3xl border border-slate-200/90 shadow-elevated overflow-hidden select-none flex flex-col">
-      {/* Ocean Subtle Texture Effect on the Right */}
+      {/* Atlantic Ocean Watermark (Geographic Orientation) */}
       <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-gradient-to-l from-sky-100/40 via-sky-50/20 to-transparent pointer-events-none"></div>
       <div className="absolute right-6 top-1/2 -translate-y-1/2 rotate-90 text-[10px] font-black tracking-[0.3em] uppercase text-sky-700/20 pointer-events-none select-none">
         Oceano Atlântico
       </div>
 
-      {/* Top Regional Chips Bar */}
-      <div className="relative z-20 px-4 pt-4 pb-2 flex items-center gap-1.5 overflow-x-auto no-scrollbar mask-edge">
+      {/* Top Regional Chips Navigation */}
+      <div className="relative z-20 px-4 pt-4 pb-2 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
         {REGIONAL_PRESETS.map((preset) => (
           <button
             key={preset.name}
@@ -158,19 +203,19 @@ export const BahiaMap: React.FC<BahiaMapProps> = ({
         ))}
       </div>
 
-      {/* Map Action Controls (Zoom/Pan/Reset) */}
+      {/* Floating Map Controls */}
       <div className="absolute top-16 left-4 z-20 flex flex-col gap-1.5 bg-white/95 backdrop-blur-md p-1.5 rounded-2xl shadow-md border border-slate-200">
         <button
           onClick={() => handleZoom(1.3)}
           className="p-2.5 text-slate-700 hover:text-blue-900 hover:bg-sky-50 rounded-xl transition-all active:scale-90"
-          title="Aumentar Zoom"
+          title="Aumentar Zoom (+)"
         >
           <ZoomIn className="w-4 h-4" />
         </button>
         <button
           onClick={() => handleZoom(0.75)}
           className="p-2.5 text-slate-700 hover:text-blue-900 hover:bg-sky-50 rounded-xl transition-all active:scale-90"
-          title="Diminuir Zoom"
+          title="Diminuir Zoom (-)"
         >
           <ZoomOut className="w-4 h-4" />
         </button>
@@ -189,24 +234,25 @@ export const BahiaMap: React.FC<BahiaMapProps> = ({
         <span className="font-bold text-[11px] tracking-wider uppercase">Bahia • Brasil</span>
       </div>
 
-      {/* Legend & Hint Pill */}
-      <div className="absolute bottom-4 left-4 z-20 flex items-center gap-3 bg-slate-900/90 text-white backdrop-blur-md px-4 py-2 rounded-2xl text-xs font-semibold shadow-lg">
+      {/* Stand Interaction Pill */}
+      <div className="absolute bottom-4 left-4 z-20 flex items-center gap-3 bg-slate-950/90 text-white backdrop-blur-md px-4 py-2 rounded-2xl text-xs font-semibold shadow-lg">
         <div className="flex items-center gap-1.5">
           <span className="w-3 h-3 rounded-full bg-blue-600 ring-2 ring-white/50"></span>
-          <span>Redes Atendidas (42)</span>
+          <span>42 Municípios Parceiros Ativos</span>
         </div>
         <div className="w-px h-3 bg-slate-700"></div>
         <div className="flex items-center gap-1.5 text-orange-400">
           <Sparkles className="w-3.5 h-3.5" />
-          <span>Toque na cidade para abrir o dossiê</span>
+          <span>Toque na cidade para acessar dossiê e folders</span>
         </div>
       </div>
 
-      {/* Interactive SVG Canvas */}
+      {/* Hardware-accelerated SVG Canvas */}
       <div className="flex-1 w-full h-full relative cursor-grab active:cursor-grabbing">
         <svg
           viewBox={`0 0 ${width} ${height}`}
           className="w-full h-full"
+          style={{ willChange: 'transform' }}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
@@ -216,12 +262,11 @@ export const BahiaMap: React.FC<BahiaMapProps> = ({
           onTouchEnd={handleTouchEnd}
         >
           <defs>
-            {/* Soft shadow filter for active municipalities */}
             <filter id="cityGlow" x="-20%" y="-20%" width="140%" height="140%">
-              <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#004B87" floodOpacity="0.4" />
+              <feDropShadow dx="0" dy="1.5" stdDeviation="2.5" floodColor="#004B87" floodOpacity="0.35" />
             </filter>
             <filter id="selectedGlow" x="-40%" y="-40%" width="180%" height="180%">
-              <feDropShadow dx="0" dy="4" stdDeviation="6" floodColor="#F58220" floodOpacity="0.6" />
+              <feDropShadow dx="0" dy="3" stdDeviation="5" floodColor="#F58220" floodOpacity="0.55" />
             </filter>
           </defs>
 
@@ -229,25 +274,22 @@ export const BahiaMap: React.FC<BahiaMapProps> = ({
             transform={`translate(${pan.x}, ${pan.y}) scale(${zoomLevel})`}
             style={{ transformOrigin: 'center center' }}
           >
-            {features.map((feature: any) => {
-              const code = String(feature.properties.codarea);
-              const name = feature.properties.name || '';
+            {/* Render Pre-computed Paths (Instant 60fps) */}
+            {precomputedFeatures.map((item) => {
+              const { code, name, meso, pathD } = item;
+              if (!pathD) return null;
+
               const featuredData = BAHIA_MUNICIPALITIES_DATA[code];
               const isFeatured = !!featuredData;
               const isSelected = selectedMunicipalityId === code;
 
-              // Region filter match
               const matchesRegion =
                 activeRegion === 'all' ||
                 (featuredData && featuredData.region.toLowerCase().includes(activeRegion.toLowerCase()));
 
-              // Search term match
               const matchesSearch =
                 searchTerm.trim().length > 1 &&
                 name.toLowerCase().includes(searchTerm.toLowerCase());
-
-              const d = pathGenerator(feature);
-              if (!d) return null;
 
               let fillColor = 'fill-slate-200/90';
               let strokeColor = 'stroke-white';
@@ -279,9 +321,9 @@ export const BahiaMap: React.FC<BahiaMapProps> = ({
               return (
                 <path
                   key={code}
-                  d={d}
+                  d={pathD}
                   filter={filter}
-                  className={`${fillColor} ${strokeColor} stroke-[${strokeWidth}] transition-all duration-200 ease-out cursor-pointer hover:opacity-90`}
+                  className={`${fillColor} ${strokeColor} stroke-[${strokeWidth}] transition-colors duration-150 ease-out cursor-pointer hover:opacity-90`}
                   onClick={(e) => {
                     e.stopPropagation();
                     sounds.playTap();
@@ -291,19 +333,19 @@ export const BahiaMap: React.FC<BahiaMapProps> = ({
                       onSelectMunicipality({
                         id: code,
                         name: name,
-                        region: feature.properties.meso || 'Território da Bahia',
+                        region: meso || 'Território da Bahia',
                         highlighted: false,
-                        contractDate: 'Proposta Aberta',
+                        contractDate: 'Proposta Aberta para Rede',
                         schoolsCount: 0,
                         studentsImpacted: 0,
                         teachersTrained: 0,
                         primaryProject: 'alfa-educa',
                         projects: ['alfa-educa', 'robotica-maker'],
                         status: 'Em Expansão',
-                        folderTitle: `Dossiê de Parceria Pedagógica — ${name}`,
+                        folderTitle: `Dossiê Pedagógico — ${name}`,
                         folderCover:
                           'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=600&q=80',
-                        videoTitle: `Apresentação de Soluções Educare para ${name}`,
+                        videoTitle: `Apresentação Educare para ${name}`,
                         videoThumbnail:
                           'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=600&q=80',
                         metrics: {
@@ -316,11 +358,11 @@ export const BahiaMap: React.FC<BahiaMapProps> = ({
                     const rect = e.currentTarget.getBoundingClientRect();
                     setHoveredMunicipality({
                       id: code,
-                      name: name,
+                      name,
                       isFeatured,
-                      region: featuredData ? featuredData.region : feature.properties.meso || 'Bahia',
-                      projectTitle: featuredData ? featuredData.folderTitle : undefined,
+                      region: featuredData ? featuredData.region : meso || 'Bahia',
                       students: featuredData ? featuredData.studentsImpacted : undefined,
+                      contractDate: featuredData ? featuredData.contractDate : undefined,
                       x: rect.x + rect.width / 2,
                       y: rect.y - 12,
                     });
@@ -331,36 +373,29 @@ export const BahiaMap: React.FC<BahiaMapProps> = ({
             })}
 
             {/* Glowing Centroids & City Pins */}
-            {features
-              .filter((f: any) => BAHIA_MUNICIPALITIES_DATA[String(f.properties.codarea)])
-              .map((feature: any) => {
-                const code = String(feature.properties.codarea);
-                const centroid = pathGenerator.centroid(feature);
-                if (isNaN(centroid[0]) || isNaN(centroid[1])) return null;
+            {partnerCentroids.map((item) => {
+              const isSelected = selectedMunicipalityId === item.code;
 
-                const isSelected = selectedMunicipalityId === code;
-
-                return (
-                  <g
-                    key={`pin-${code}`}
-                    transform={`translate(${centroid[0]}, ${centroid[1]})`}
-                    className="pointer-events-none"
-                  >
-                    {/* Concentric rings on selection */}
-                    {isSelected ? (
-                      <>
-                        <circle r={14} className="fill-orange-500/30 animate-ping" />
-                        <circle r={6} className="fill-orange-500 stroke-white stroke-2 drop-shadow" />
-                      </>
-                    ) : (
-                      <>
-                        <circle r={4.5} className="fill-amber-400 stroke-blue-950 stroke-[1.5]" />
-                        <circle r={2} className="fill-white" />
-                      </>
-                    )}
-                  </g>
-                );
-              })}
+              return (
+                <g
+                  key={`pin-${item.code}`}
+                  transform={`translate(${item.centroid[0]}, ${item.centroid[1]})`}
+                  className="pointer-events-none"
+                >
+                  {isSelected ? (
+                    <>
+                      <circle r={14} className="fill-orange-500/30 animate-ping" />
+                      <circle r={6} className="fill-orange-500 stroke-white stroke-2 drop-shadow" />
+                    </>
+                  ) : (
+                    <>
+                      <circle r={4.5} className="fill-amber-400 stroke-blue-950 stroke-[1.5]" />
+                      <circle r={2} className="fill-white" />
+                    </>
+                  )}
+                </g>
+              );
+            })}
           </g>
         </svg>
       </div>
@@ -368,7 +403,7 @@ export const BahiaMap: React.FC<BahiaMapProps> = ({
       {/* Floating Rich Tooltip */}
       {hoveredMunicipality && (
         <div
-          className="fixed pointer-events-none z-50 transform -translate-x-1/2 -translate-y-full mb-3 px-4 py-3 bg-slate-950/95 text-white rounded-2xl shadow-modal border border-slate-700 text-xs backdrop-blur-md transition-all duration-150 min-w-[200px]"
+          className="fixed pointer-events-none z-50 transform -translate-x-1/2 -translate-y-full mb-3 px-4 py-3 bg-slate-950/95 text-white rounded-2xl shadow-modal border border-slate-700 text-xs backdrop-blur-md transition-all duration-150 min-w-[210px]"
           style={{
             left: `${hoveredMunicipality.x}px`,
             top: `${hoveredMunicipality.y}px`,
@@ -386,21 +421,21 @@ export const BahiaMap: React.FC<BahiaMapProps> = ({
             <div className="space-y-1">
               <div className="flex items-center gap-1.5 text-emerald-400 font-bold">
                 <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>Rede Parceira Grupo Educare</span>
+                <span>Rede Parceira ({hoveredMunicipality.contractDate || 'Ativa'})</span>
               </div>
               {hoveredMunicipality.students && (
                 <div className="text-slate-300 text-[11px]">
-                  Impacto: <strong>{hoveredMunicipality.students.toLocaleString()}</strong> alunos atendidos
+                  Impacto: <strong>{hoveredMunicipality.students.toLocaleString()}</strong> alunos
                 </div>
               )}
               <div className="text-[10px] text-amber-300/90 font-medium pt-1 flex items-center gap-1">
-                <span>Toque para ver dossiê e folders</span>
+                <span>Toque para abrir dossiê, folders e vídeo</span>
                 <ArrowUpRight className="w-3 h-3" />
               </div>
             </div>
           ) : (
             <div className="text-slate-300 text-[11px]">
-              <div>Município elegível para novos projetos</div>
+              <div>Rede municipal elegível para novas soluções</div>
               <div className="text-orange-400 font-bold text-[10px] mt-1">
                 Toque para simular proposta personalizada
               </div>
