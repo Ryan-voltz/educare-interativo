@@ -899,8 +899,8 @@ export const BAHIA_MUNICIPALITIES_DATA: Record<string, MunicipalityCase> = {
 // Estados Brasileiros com presença e expansão do Grupo Educare
 /**
  * Presença nacional informada pelo cliente (19/11/2026): cerca de 2.000 contratos
- * em 9 estados. Bahia é a maior parte (mais de 400 municípios), Maranhão o segundo;
- * Santa Catarina e Paraná têm menos de 5 cada; RJ (2 municípios), PE (1) e SE (4). A divisão exata por estado ainda é ESTIMADA: troque os
+ * em 10 estados. Bahia é a maior parte (mais de 400 municípios), Maranhão o segundo;
+ * Santa Catarina e Paraná têm menos de 5 cada; RJ (2 municípios), PE (1), SE (4) e RO (1). A divisão exata por estado ainda é ESTIMADA: troque os
  * números quando chegar a lista oficial e mude CONTRATOS_ESTADOS_ESTIMADOS para false.
  */
 export const CONTRATOS_ESTADOS_ESTIMADOS = true;
@@ -912,7 +912,7 @@ export const BRASIL_STATES_DATA: Record<string, StateCase> = {
     nome: 'Bahia',
     regiao: 'Nordeste',
     active: true,
-    contratos: 1293,
+    contratos: 1292,
     municipiosAtendidos: 400,
     destaque: 'Maior presença do Grupo Educare: a maior parte dos contratos está em municípios baianos.',
   },
@@ -984,5 +984,15 @@ export const BRASIL_STATES_DATA: Record<string, StateCase> = {
     contratos: 2,
     municipiosAtendidos: 2,
     destaque: 'Dois municípios atendidos no Rio de Janeiro.',
+  },
+  RO: {
+    sigla: 'RO',
+    nome: 'Rondônia',
+    regiao: 'Norte',
+    active: true,
+    contratos: 1,
+    municipiosAtendidos: 1,
+    municipios: ['Monte Negro'],
+    destaque: 'Rede municipal atendida em Rondônia.',
   },
 };
