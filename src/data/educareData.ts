@@ -122,7 +122,8 @@ export const CATALOG_PROJECTS: Record<string, PedagogicalProject> = {
   }
 };
 
-// Municípios Baianos destacados na arte do Grupo Educare (42 municípios estratégicos)
+// Dados de exemplo de alguns municípios baianos (usados só pelo simulador de proposta).
+// O mapa mostra os 417 municípios como atendidos: veja src/data/municipiosBahia.ts
 export const BAHIA_MUNICIPALITIES_DATA: Record<string, MunicipalityCase> = {
   // Salvador e RMS
   '2927408': {
@@ -910,7 +911,7 @@ export const BRASIL_STATES_DATA: Record<string, StateCase> = {
     regiao: 'Nordeste',
     active: true,
     contratos: 1300,
-    municipiosAtendidos: 42,
+    municipiosAtendidos: 400,
     destaque: 'Maior presença do Grupo Educare: a maior parte dos contratos está em municípios baianos.',
   },
   MA: {

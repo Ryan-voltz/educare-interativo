@@ -75,7 +75,7 @@ export const StateModal: React.FC<StateModalProps> = ({ state, onClose, onDrillD
               }}
               className="btn-yellow mt-6 w-full h-12 rounded-2xl font-semibold flex items-center justify-center gap-2"
             >
-              Ver os 42 municípios da Bahia
+              Ver os municípios atendidos na Bahia
               <ArrowRight className="w-4 h-4" />
             </button>
           )}

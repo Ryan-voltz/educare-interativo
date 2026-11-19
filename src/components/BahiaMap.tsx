@@ -4,7 +4,8 @@ import bahiaGeoRaw from '../data/bahia-geo.json';
 import { rewindForD3 } from '../utils/geo';
 
 const bahiaGeoJson = rewindForD3(bahiaGeoRaw as any);
-import { BAHIA_MUNICIPALITIES_DATA, type MunicipalityCase } from '../data/educareData';
+import type { MunicipalityCase } from '../data/educareData';
+import { municipioCase, nomeRegiao } from '../data/municipiosBahia';
 import { sounds } from '../utils/audio';
 import {
   ZoomIn,
@@ -12,7 +13,6 @@ import {
   RotateCcw,
   MapPin,
   CheckCircle2,
-  ArrowUpRight,
 } from 'lucide-react';
 
 interface BahiaMapProps {
@@ -21,15 +21,16 @@ interface BahiaMapProps {
   searchTerm: string;
 }
 
-const REGIONAL_PRESETS: { name: string; filter: string; center?: [number, number]; zoom?: number }[] = [
-  { name: 'Toda a Bahia', filter: 'all', zoom: 1, center: [0, 0] },
-  { name: 'Metropolitana (RMS)', filter: 'Metropolitana', zoom: 1.85, center: [-150, -40] },
-  { name: 'Portal do Sertão', filter: 'Portal do Sertão', zoom: 1.7, center: [-80, -20] },
-  { name: 'Sul e Extremo Sul', filter: 'Sul', zoom: 1.65, center: [-50, -190] },
-  { name: 'Oeste Baiano', filter: 'Oeste', zoom: 1.55, center: [140, 20] },
-  { name: 'São Francisco', filter: 'Vale do São Francisco', zoom: 1.65, center: [-30, 160] },
-  { name: 'Sudoeste', filter: 'Sudoeste', zoom: 1.65, center: [10, -120] },
-  { name: 'Recôncavo', filter: 'Recôncavo', zoom: 1.8, center: [-90, -30] },
+// Atalhos por mesorregião do IBGE: o zoom e o centro são calculados a partir do mapa
+const REGIONAL_PRESETS: { name: string; filter: string }[] = [
+  { name: 'Toda a Bahia', filter: 'all' },
+  { name: 'Metropolitana', filter: 'Metropolitana de Salvador' },
+  { name: 'Nordeste', filter: 'Nordeste Baiano' },
+  { name: 'Centro-Norte', filter: 'Centro Norte Baiano' },
+  { name: 'Centro-Sul', filter: 'Centro Sul Baiano' },
+  { name: 'Sul', filter: 'Sul Baiano' },
+  { name: 'Oeste', filter: 'Extremo Oeste Baiano' },
+  { name: 'São Francisco', filter: 'Vale São-Franciscano da Bahia' },
 ];
 
 export const BahiaMap: React.FC<BahiaMapProps> = ({
@@ -40,10 +41,7 @@ export const BahiaMap: React.FC<BahiaMapProps> = ({
   const [hoveredMunicipality, setHoveredMunicipality] = useState<{
     id: string;
     name: string;
-    isFeatured: boolean;
     region: string;
-    students?: number;
-    contractDate?: string;
     x: number;
     y: number;
   } | null>(null);
@@ -88,16 +86,26 @@ export const BahiaMap: React.FC<BahiaMapProps> = ({
     });
   }, [pathGenerator]);
 
-  // Centroids for partner cities only (for instant rendering)
-  const partnerCentroids = useMemo(() => {
-    return precomputedFeatures
-      .filter((f) => f.centroid && BAHIA_MUNICIPALITIES_DATA[f.code])
-      .map((f) => ({
-        code: f.code,
-        name: f.name,
-        centroid: f.centroid as [number, number],
-      }));
-  }, [precomputedFeatures]);
+  // Zoom e centro de cada mesorregião, a partir dos limites dos municípios
+  const regionViews = useMemo(() => {
+    const views: Record<string, { zoom: number; pan: { x: number; y: number } }> = {};
+    const bounds: Record<string, [[number, number], [number, number]]> = {};
+    (bahiaGeoJson as any).features.forEach((f: any) => {
+      const meso = f.properties.meso || '';
+      const [[x0, y0], [x1, y1]] = pathGenerator.bounds(f);
+      const b = bounds[meso];
+      bounds[meso] = b
+        ? [[Math.min(b[0][0], x0), Math.min(b[0][1], y0)], [Math.max(b[1][0], x1), Math.max(b[1][1], y1)]]
+        : [[x0, y0], [x1, y1]];
+    });
+    Object.entries(bounds).forEach(([meso, [[x0, y0], [x1, y1]]]) => {
+      const zoom = Math.min(Math.max(0.85 * Math.min(width / (x1 - x0), height / (y1 - y0)), 1.2), 3.5);
+      const mx = (x0 + x1) / 2;
+      const my = (y0 + y1) / 2;
+      views[meso] = { zoom, pan: { x: -zoom * (mx - width / 2), y: -zoom * (my - height / 2) } };
+    });
+    return views;
+  }, [pathGenerator]);
 
   const handleZoom = useCallback((factor: number) => {
     sounds.playTap();
@@ -114,14 +122,15 @@ export const BahiaMap: React.FC<BahiaMapProps> = ({
   const handleSelectRegion = useCallback((preset: typeof REGIONAL_PRESETS[0]) => {
     sounds.playTap();
     setActiveRegion(preset.filter);
-    if (preset.zoom && preset.center) {
-      setZoomLevel(preset.zoom);
-      setPan({ x: preset.center[0], y: preset.center[1] });
+    const view = regionViews[preset.filter];
+    if (view) {
+      setZoomLevel(view.zoom);
+      setPan(view.pan);
     } else {
       setZoomLevel(1);
       setPan({ x: 0, y: 0 });
     }
-  }, []);
+  }, [regionViews]);
 
   // Smooth Throttled Drag Handlers with RequestAnimationFrame
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -187,19 +196,17 @@ export const BahiaMap: React.FC<BahiaMapProps> = ({
               const { code, name, meso, pathD } = item;
               if (!pathD) return null;
 
-              const featuredData = BAHIA_MUNICIPALITIES_DATA[code];
-              const isFeatured = !!featuredData;
               const isSelected = selectedMunicipalityId === code;
-
-              const matchesRegion =
-                activeRegion === 'all' ||
-                (featuredData && featuredData.region.toLowerCase().includes(activeRegion.toLowerCase()));
+              const matchesRegion = activeRegion === 'all' || meso === activeRegion;
 
               const matchesSearch =
                 searchTerm.trim().length > 1 &&
                 name.toLowerCase().includes(searchTerm.toLowerCase());
 
-              let fillColor = 'fill-slate-200 hover:fill-blue-100';
+              // Mais de 400 dos 417 municípios já foram atendidos: todos aparecem em azul
+              let fillColor = matchesRegion
+                ? 'fill-blue-600 hover:fill-blue-400'
+                : 'fill-blue-200 hover:fill-blue-300';
               let strokeColor = 'stroke-white';
               let strokeWidth = 0.5;
               let filter = '';
@@ -213,17 +220,6 @@ export const BahiaMap: React.FC<BahiaMapProps> = ({
                 fillColor = 'fill-amber-300';
                 strokeColor = 'stroke-amber-800';
                 strokeWidth = 1.5;
-              } else if (isFeatured) {
-                if (matchesRegion) {
-                  fillColor = 'fill-blue-600 hover:fill-blue-500';
-                  strokeColor = 'stroke-white';
-                  strokeWidth = 0.9;
-                  filter = 'url(#cityGlow)';
-                } else {
-                  fillColor = 'fill-blue-300 hover:fill-blue-400';
-                  strokeColor = 'stroke-white';
-                  strokeWidth = 0.6;
-                }
               }
 
               return (
@@ -237,42 +233,14 @@ export const BahiaMap: React.FC<BahiaMapProps> = ({
                   onClick={(e) => {
                     e.stopPropagation();
                     sounds.playTap();
-                    if (featuredData) {
-                      onSelectMunicipality(featuredData);
-                    } else {
-                      onSelectMunicipality({
-                        id: code,
-                        name: name,
-                        region: meso || 'Território da Bahia',
-                        highlighted: false,
-                        contractDate: 'Proposta Aberta para Rede',
-                        schoolsCount: 0,
-                        studentsImpacted: 0,
-                        teachersTrained: 0,
-                        primaryProject: 'alfa-educa',
-                        projects: ['alfa-educa', 'robotica-maker'],
-                        status: 'Em Expansão',
-                        folderTitle: `Dossiê Pedagógico — ${name}`,
-                        folderCover:
-                          'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=600&q=80',
-                        videoTitle: `Apresentação Educare para ${name}`,
-                        videoThumbnail:
-                          'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=600&q=80',
-                        metrics: {
-                          satisfaction: '100% Personalizado',
-                        },
-                      });
-                    }
+                    onSelectMunicipality(municipioCase({ id: code, name, region: nomeRegiao(meso) }));
                   }}
                   onMouseEnter={(e) => {
                     const rect = e.currentTarget.getBoundingClientRect();
                     setHoveredMunicipality({
                       id: code,
                       name,
-                      isFeatured,
-                      region: featuredData ? featuredData.region : meso || 'Bahia',
-                      students: featuredData ? featuredData.studentsImpacted : undefined,
-                      contractDate: featuredData ? featuredData.contractDate : undefined,
+                      region: nomeRegiao(meso),
                       x: rect.x + rect.width / 2,
                       y: rect.y - 12,
                     });
@@ -288,10 +256,10 @@ export const BahiaMap: React.FC<BahiaMapProps> = ({
   );
 
   const legend = [
-    { label: 'Rede parceira', swatch: 'bg-blue-600' },
+    { label: 'Município atendido', swatch: 'bg-blue-600' },
     { label: 'Selecionado', swatch: 'bg-amber-400 ring-1 ring-blue-950' },
     { label: 'Resultado da busca', swatch: 'bg-amber-300' },
-    { label: 'Demais municípios', swatch: 'bg-slate-200' },
+    { label: 'Fora da região', swatch: 'bg-blue-200' },
   ];
 
   return (
@@ -357,7 +325,7 @@ export const BahiaMap: React.FC<BahiaMapProps> = ({
 
       <div className="absolute bottom-4 right-4 z-20 hidden 2xl:flex items-center gap-2 bg-blue-950 text-white rounded-2xl px-4 py-2.5 text-sm shadow-elevated pointer-events-none">
         <MapPin className="w-4 h-4 text-amber-400" />
-        Toque em um município para ver os contratos
+        Mais de 400 municípios baianos atendidos
       </div>
 
       <div className={`flex-1 min-h-0 w-full relative ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}>
@@ -372,7 +340,7 @@ export const BahiaMap: React.FC<BahiaMapProps> = ({
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
           role="img"
-          aria-label="Mapa dos municípios da Bahia com as redes parceiras do Grupo Educare"
+          aria-label="Mapa dos municípios da Bahia atendidos pelo Grupo Educare"
         >
           <defs>
             <filter id="cityGlow" x="-20%" y="-20%" width="140%" height="140%">
@@ -388,28 +356,6 @@ export const BahiaMap: React.FC<BahiaMapProps> = ({
             style={{ transformOrigin: 'center center', transition: isDragging ? 'none' : 'transform 0.45s cubic-bezier(0.16, 1, 0.3, 1)' }}
           >
             {pathLayer}
-            {partnerCentroids.map((item) => {
-              const isSelected = selectedMunicipalityId === item.code;
-              const r = 1 / Math.sqrt(zoomLevel);
-              return (
-                <g
-                  key={`pin-${item.code}`}
-                  transform={`translate(${item.centroid[0]}, ${item.centroid[1]}) scale(${r})`}
-                  className="pointer-events-none"
-                >
-                  {isSelected ? (
-                    <>
-                      <circle r={14} className="fill-amber-400/40 animate-ping" />
-                      <circle r={6.5} className="fill-blue-950 stroke-white" strokeWidth={2} />
-                    </>
-                  ) : (
-                    <>
-                      <circle r={4} className="fill-white stroke-blue-950" strokeWidth={1.5} />
-                    </>
-                  )}
-                </g>
-              );
-            })}
           </g>
         </svg>
       </div>
@@ -421,28 +367,10 @@ export const BahiaMap: React.FC<BahiaMapProps> = ({
         >
           <div className="font-heading font-semibold text-base leading-tight">{hoveredMunicipality.name}</div>
           <div className="text-xs text-blue-200 mt-0.5">{hoveredMunicipality.region}</div>
-          {hoveredMunicipality.isFeatured ? (
-            <div className="mt-2 pt-2 border-t border-white/15 space-y-1">
-              <div className="flex items-center gap-1.5 text-emerald-300 font-medium text-[13px]">
-                <CheckCircle2 className="w-4 h-4" />
-                Rede parceira · {hoveredMunicipality.contractDate || 'ativa'}
-              </div>
-              {hoveredMunicipality.students ? (
-                <div className="text-[13px] text-blue-100 tabular-nums">
-                  {hoveredMunicipality.students.toLocaleString('pt-BR')} alunos atendidos
-                </div>
-              ) : null}
-              <div className="text-xs text-amber-300 flex items-center gap-1">
-                Toque para ver os contratos
-                <ArrowUpRight className="w-3.5 h-3.5" />
-              </div>
-            </div>
-          ) : (
-            <div className="mt-2 pt-2 border-t border-white/15 text-[13px] text-blue-100">
-              Rede elegível para novas soluções.
-              <div className="text-amber-300 text-xs mt-1">Toque para saber como atender sua rede</div>
-            </div>
-          )}
+          <div className="mt-2 pt-2 border-t border-white/15 flex items-center gap-1.5 text-emerald-300 font-medium text-[13px]">
+            <CheckCircle2 className="w-4 h-4" />
+            Atendido pelo Grupo Educare
+          </div>
         </div>
       )}
     </div>
