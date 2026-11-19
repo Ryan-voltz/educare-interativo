@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useRef, useCallback } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import * as d3Geo from 'd3-geo';
 import bahiaGeoRaw from '../data/bahia-geo.json';
 import { rewindForD3 } from '../utils/geo';
@@ -7,6 +7,7 @@ const bahiaGeoJson = rewindForD3(bahiaGeoRaw as any);
 import type { MunicipalityCase } from '../data/educareData';
 import { municipioCase, nomeRegiao, MUNICIPIOS_MARCADOS_BAHIA } from '../data/municipiosBahia';
 import { sounds } from '../utils/audio';
+import { useMapZoom } from '../hooks/useMapZoom';
 import {
   ZoomIn,
   ZoomOut,
@@ -45,16 +46,11 @@ export const BahiaMap: React.FC<BahiaMapProps> = ({
     y: number;
   } | null>(null);
 
-  const [zoomLevel, setZoomLevel] = useState(1);
-  const [pan, setPan] = useState({ x: 0, y: 0 });
   const [activeRegion, setActiveRegion] = useState('all');
-  const [isDragging, setIsDragging] = useState(false);
-
-  const dragStartRef = useRef<{ x: number; y: number } | null>(null);
-  const rafRef = useRef<number | null>(null);
 
   const width = 850;
   const height = 740;
+  const { svgRef, zoomLevel, pan, transition, dragging, zoomBy, reset, goTo, ignoreClick } = useMapZoom(width, height);
 
   // 1. One-time Projection & Path Generator
   const { pathGenerator } = useMemo(() => {
@@ -106,86 +102,27 @@ export const BahiaMap: React.FC<BahiaMapProps> = ({
     return views;
   }, [pathGenerator]);
 
-  const handleZoom = useCallback((factor: number) => {
-    sounds.playTap();
-    setZoomLevel((prev) => Math.min(Math.max(prev * factor, 0.8), 5));
-  }, []);
+  const handleZoom = useCallback(
+    (factor: number) => {
+      sounds.playTap();
+      zoomBy(factor);
+    },
+    [zoomBy],
+  );
 
   const handleResetZoom = useCallback(() => {
     sounds.playTap();
-    setZoomLevel(1);
-    setPan({ x: 0, y: 0 });
+    reset();
     setActiveRegion('all');
-  }, []);
+  }, [reset]);
 
   const handleSelectRegion = useCallback((preset: typeof REGIONAL_PRESETS[0]) => {
     sounds.playTap();
     setActiveRegion(preset.filter);
     const view = regionViews[preset.filter];
-    if (view) {
-      setZoomLevel(view.zoom);
-      setPan(view.pan);
-    } else {
-      setZoomLevel(1);
-      setPan({ x: 0, y: 0 });
-    }
-  }, [regionViews]);
-
-  // Smooth Throttled Drag Handlers with RequestAnimationFrame
-  const handleMouseDown = (e: React.MouseEvent) => {
-    setIsDragging(true);
-    dragStartRef.current = { x: e.clientX - pan.x, y: e.clientY - pan.y };
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (isDragging && dragStartRef.current) {
-      const clientX = e.clientX;
-      const clientY = e.clientY;
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-      rafRef.current = requestAnimationFrame(() => {
-        if (!dragStartRef.current) return;
-        setPan({
-          x: clientX - dragStartRef.current.x,
-          y: clientY - dragStartRef.current.y,
-        });
-      });
-    }
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-    if (rafRef.current) cancelAnimationFrame(rafRef.current);
-  };
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (e.touches.length === 1) {
-      setIsDragging(true);
-      dragStartRef.current = {
-        x: e.touches[0].clientX - pan.x,
-        y: e.touches[0].clientY - pan.y,
-      };
-    }
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (isDragging && dragStartRef.current && e.touches.length === 1) {
-      const touchX = e.touches[0].clientX;
-      const touchY = e.touches[0].clientY;
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-      rafRef.current = requestAnimationFrame(() => {
-        if (!dragStartRef.current) return;
-        setPan({
-          x: touchX - dragStartRef.current.x,
-          y: touchY - dragStartRef.current.y,
-        });
-      });
-    }
-  };
-
-  const handleTouchEnd = () => {
-    setIsDragging(false);
-    if (rafRef.current) cancelAnimationFrame(rafRef.current);
-  };
+    if (view) goTo(view.zoom, view.pan);
+    else reset();
+  }, [regionViews, goTo, reset]);
 
   // Camada dos 417 municípios: memorizada para não redesenhar a cada hover
   const pathLayer = useMemo(
@@ -236,6 +173,7 @@ export const BahiaMap: React.FC<BahiaMapProps> = ({
                   className={`${fillColor} ${strokeColor} transition-colors duration-150 ease-out cursor-pointer`}
                   onClick={(e) => {
                     e.stopPropagation();
+                    if (ignoreClick()) return;
                     sounds.playTap();
                     onSelectMunicipality(municipioCase({ id: code, name, region: nomeRegiao(meso) }));
                   }}
@@ -256,7 +194,7 @@ export const BahiaMap: React.FC<BahiaMapProps> = ({
 
       </>
     ),
-    [precomputedFeatures, selectedMunicipalityId, activeRegion, searchTerm, onSelectMunicipality],
+    [precomputedFeatures, selectedMunicipalityId, activeRegion, searchTerm, onSelectMunicipality, ignoreClick],
   );
 
   const legend = [
@@ -332,17 +270,11 @@ export const BahiaMap: React.FC<BahiaMapProps> = ({
         Mais de 300 municípios baianos atendidos
       </div>
 
-      <div className={`flex-1 min-h-0 w-full relative ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}>
+      <div className={`flex-1 min-h-0 w-full relative ${dragging ? 'cursor-grabbing' : 'cursor-grab'}`}>
         <svg
+          ref={svgRef}
           viewBox={`0 0 ${width} ${height}`}
           className="w-full h-full touch-none"
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
           role="img"
           aria-label="Mapa dos municípios da Bahia"
         >
@@ -357,7 +289,7 @@ export const BahiaMap: React.FC<BahiaMapProps> = ({
 
           <g
             transform={`translate(${pan.x}, ${pan.y}) scale(${zoomLevel})`}
-            style={{ transformOrigin: 'center center', transition: isDragging ? 'none' : 'transform 0.45s cubic-bezier(0.16, 1, 0.3, 1)' }}
+            style={{ transformOrigin: 'center center', transition }}
           >
             {pathLayer}
           </g>
