@@ -276,7 +276,7 @@ export const BrasilMap: React.FC<BrasilMapProps> = ({
               </div>
               {hoveredState.sigla === 'BA' && (
                 <div className="text-amber-300 font-semibold text-[11px] mt-1 flex items-center gap-1">
-                  <span>Toque para ver os 400+ municípios atendidos</span>
+                  <span>Toque para ver os municípios da Bahia</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </div>
               )}

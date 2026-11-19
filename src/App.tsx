@@ -13,7 +13,7 @@ const StateModal = lazy(() => import('./components/StateModal').then((m) => ({ d
 const ProposalModal = lazy(() => import('./components/ProposalModal').then((m) => ({ default: m.ProposalModal })));
 
 const STEPS_BAHIA = [
-  { title: 'Toque no município', text: 'Mais de 400 redes atendidas' },
+  { title: 'Toque no município', text: 'Mais de 300 redes atendidas' },
   { title: 'Contratos no Brasil', text: 'Veja por estado na aba Brasil' },
   { title: 'Fale com a Vitória', text: 'Leia o QR code do WhatsApp' },
 ];
@@ -21,7 +21,7 @@ const STEPS_BAHIA = [
 const STEPS_BRASIL = [
   { title: 'Toque no estado', text: 'Em azul, estados com contratos' },
   { title: 'Veja os contratos', text: 'Quantos fornecemos no estado' },
-  { title: 'Abra a Bahia', text: 'Mais de 400 municípios' },
+  { title: 'Abra a Bahia', text: 'Mais de 300 municípios' },
 ];
 
 const MapFallback = () => (

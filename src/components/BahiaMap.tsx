@@ -12,7 +12,6 @@ import {
   ZoomOut,
   RotateCcw,
   MapPin,
-  CheckCircle2,
 } from 'lucide-react';
 
 interface BahiaMapProps {
@@ -203,7 +202,7 @@ export const BahiaMap: React.FC<BahiaMapProps> = ({
                 searchTerm.trim().length > 1 &&
                 name.toLowerCase().includes(searchTerm.toLowerCase());
 
-              // Mais de 400 dos 417 municípios já foram atendidos: todos aparecem em azul
+              // Mais de 300 dos 417 municípios já foram atendidos. Sem a lista exata, todos aparecem em azul
               let fillColor = matchesRegion
                 ? 'fill-blue-600 hover:fill-blue-400'
                 : 'fill-blue-200 hover:fill-blue-300';
@@ -256,7 +255,7 @@ export const BahiaMap: React.FC<BahiaMapProps> = ({
   );
 
   const legend = [
-    { label: 'Município atendido', swatch: 'bg-blue-600' },
+    { label: 'Município da Bahia', swatch: 'bg-blue-600' },
     { label: 'Selecionado', swatch: 'bg-amber-400 ring-1 ring-blue-950' },
     { label: 'Resultado da busca', swatch: 'bg-amber-300' },
     { label: 'Fora da região', swatch: 'bg-blue-200' },
@@ -325,7 +324,7 @@ export const BahiaMap: React.FC<BahiaMapProps> = ({
 
       <div className="absolute bottom-4 right-4 z-20 hidden 2xl:flex items-center gap-2 bg-blue-950 text-white rounded-2xl px-4 py-2.5 text-sm shadow-elevated pointer-events-none">
         <MapPin className="w-4 h-4 text-amber-400" />
-        Mais de 400 municípios baianos atendidos
+        Mais de 300 municípios baianos atendidos
       </div>
 
       <div className={`flex-1 min-h-0 w-full relative ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}>
@@ -340,7 +339,7 @@ export const BahiaMap: React.FC<BahiaMapProps> = ({
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
           role="img"
-          aria-label="Mapa dos municípios da Bahia atendidos pelo Grupo Educare"
+          aria-label="Mapa dos municípios da Bahia"
         >
           <defs>
             <filter id="cityGlow" x="-20%" y="-20%" width="140%" height="140%">
@@ -367,9 +366,9 @@ export const BahiaMap: React.FC<BahiaMapProps> = ({
         >
           <div className="font-heading font-semibold text-base leading-tight">{hoveredMunicipality.name}</div>
           <div className="text-xs text-blue-200 mt-0.5">{hoveredMunicipality.region}</div>
-          <div className="mt-2 pt-2 border-t border-white/15 flex items-center gap-1.5 text-emerald-300 font-medium text-[13px]">
-            <CheckCircle2 className="w-4 h-4" />
-            Atendido pelo Grupo Educare
+          <div className="mt-2 pt-2 border-t border-white/15 flex items-center gap-1.5 text-amber-300 font-medium text-[13px]">
+            <MapPin className="w-4 h-4" />
+            Toque para ver detalhes
           </div>
         </div>
       )}

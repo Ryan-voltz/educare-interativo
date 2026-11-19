@@ -17,7 +17,7 @@ Permite que a equipe de atendimento (Vitória e consultores pedagógicos) aprese
 
 - **WhatsApp da Vitória (QR code e botões):** `src/config/contato.ts` → `VITORIA_WHATSAPP` (só dígitos, com 55 + DDD).
 - **Contratos por estado:** `src/data/educareData.ts` → `BRASIL_STATES_DATA` e `TOTAL_CONTRATOS_BRASIL`. A divisão por estado é **estimada**; com os números oficiais, mude `CONTRATOS_ESTADOS_ESTIMADOS` para `false`.
-- **Municípios da Bahia:** o mapa mostra os 417 municípios como atendidos (mais de 400). O número de contratos aparece só por estado, na visão Brasil.
+- **Municípios da Bahia:** o Grupo Educare atendeu mais de 300 dos 417 municípios; o mapa mostra todos. O número de contratos aparece só por estado, na visão Brasil.
 - **Logos:** `public/brand/` (Grupo Educare, vinda do site oficial, e Atacado GE).
 
 ---
@@ -26,14 +26,14 @@ Permite que a equipe de atendimento (Vitória e consultores pedagógicos) aprese
 
 1. **Identidade Visual Fiel:**
    - Reprodução exata do slide/banner de referência: logo do Grupo Educare (com as folhas/páginas coloridas), azul marinho institucional, azul de destaque, laranja e verde.
-   - Card lateral com contador animado **"400+ municípios atendidos na Bahia"** e os 3 pilares estratégicos:
+   - Card lateral com contador animado **"300+ municípios atendidos na Bahia"** e os 3 pilares estratégicos:
      - 📖 **Projetos educacionais:** Coleções pedagógicas, alfabetização e laboratórios maker.
      - 👥 **Diálogo com gestores:** Formação continuada e assessoria técnica às secretarias.
      - 🎯 **Propostas alinhadas:** Customização total para as necessidades de cada rede.
 
 2. **Mapa Interativo da Bahia:**
    - Malha geográfica municipal oficial do IBGE com todos os 417 municípios baianos.
-   - Todos os municípios em azul Educare: mais de 400 redes baianas atendidas.
+   - Todos os municípios em azul Educare: mais de 300 redes baianas atendidas.
    - Suporte a toque (tablet/iPad/touchscreen), zoom com botões (+/-) e pan (arrastar).
    - Tooltip instantâneo ao passar o cursor ou tocar em qualquer cidade.
 
