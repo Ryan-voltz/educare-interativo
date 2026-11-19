@@ -61,6 +61,15 @@ export const StateModal: React.FC<StateModalProps> = ({ state, onClose, onDrillD
             </span>
           </div>
           <p className="mt-4 text-slate-700">{state.destaque}</p>
+          {state.municipios && state.municipios.length > 0 && (
+            <ul className="mt-3 flex flex-wrap gap-1.5" aria-label="Municípios atendidos">
+              {state.municipios.map((m) => (
+                <li key={m} className="text-[13px] font-medium text-blue-950 bg-blue-50 ring-1 ring-blue-100 rounded-full px-3 py-1">
+                  {m}
+                </li>
+              ))}
+            </ul>
+          )}
           {CONTRATOS_ESTADOS_ESTIMADOS && (
             <p className="mt-4 text-xs text-slate-500 bg-slate-100 rounded-lg px-3 py-2">
               Total nacional de cerca de 2.000 contratos. A divisão por estado é estimada.

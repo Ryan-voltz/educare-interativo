@@ -199,7 +199,8 @@ export const MunicipalitySearch: React.FC<MunicipalitySearchProps> = ({
                   <span>
                     <span className="block text-[15px] font-semibold text-slate-900">{s.nome}</span>
                     <span className="block text-xs text-slate-500 tabular-nums">
-                      cerca de {s.contratos.toLocaleString('pt-BR')} contratos
+                      {s.contratos >= 10 ? 'cerca de ' : ''}{s.contratos.toLocaleString('pt-BR')} {s.contratos === 1 ? 'contrato' : 'contratos'}
+                      {s.municipiosAtendidos && s.sigla !== 'BA' ? ` · ${s.municipiosAtendidos} ${s.municipiosAtendidos === 1 ? 'município' : 'municípios'}` : ''}
                     </span>
                   </span>
                 </span>

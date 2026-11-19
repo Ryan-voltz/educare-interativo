@@ -46,8 +46,10 @@ export interface StateCase {
   active: boolean;
   /** Contratos fornecidos no estado (distribuição estimada, ver CONTRATOS_ESTADOS_ESTIMADOS) */
   contratos: number;
-  /** Só a Bahia tem o mapa por município */
+  /** Número de municípios atendidos, quando informado */
   municipiosAtendidos?: number;
+  /** Nomes dos municípios atendidos, quando o cliente informou */
+  municipios?: string[];
   destaque: string;
 }
 
@@ -897,8 +899,8 @@ export const BAHIA_MUNICIPALITIES_DATA: Record<string, MunicipalityCase> = {
 // Estados Brasileiros com presença e expansão do Grupo Educare
 /**
  * Presença nacional informada pelo cliente (19/11/2026): cerca de 2.000 contratos
- * em 6 estados. Bahia é a maior parte, Maranhão o segundo; Santa Catarina e Paraná
- * têm menos de 5 cada. A divisão exata por estado ainda é ESTIMADA: troque os
+ * em 9 estados. Bahia é a maior parte (mais de 400 municípios), Maranhão o segundo;
+ * Santa Catarina e Paraná têm menos de 5 cada; RJ (2 municípios), PE (1) e SE (4). A divisão exata por estado ainda é ESTIMADA: troque os
  * números quando chegar a lista oficial e mude CONTRATOS_ESTADOS_ESTIMADOS para false.
  */
 export const CONTRATOS_ESTADOS_ESTIMADOS = true;
@@ -910,7 +912,7 @@ export const BRASIL_STATES_DATA: Record<string, StateCase> = {
     nome: 'Bahia',
     regiao: 'Nordeste',
     active: true,
-    contratos: 1300,
+    contratos: 1293,
     municipiosAtendidos: 400,
     destaque: 'Maior presença do Grupo Educare: a maior parte dos contratos está em municípios baianos.',
   },
@@ -953,5 +955,34 @@ export const BRASIL_STATES_DATA: Record<string, StateCase> = {
     active: true,
     contratos: 4,
     destaque: 'Presença inicial na região Sul.',
+  },
+  SE: {
+    sigla: 'SE',
+    nome: 'Sergipe',
+    regiao: 'Nordeste',
+    active: true,
+    contratos: 4,
+    municipiosAtendidos: 4,
+    municipios: ['Arauá', 'Pedrinhas', 'Salgado', 'Umbaúba'],
+    destaque: 'Redes municipais atendidas em Sergipe.',
+  },
+  PE: {
+    sigla: 'PE',
+    nome: 'Pernambuco',
+    regiao: 'Nordeste',
+    active: true,
+    contratos: 1,
+    municipiosAtendidos: 1,
+    municipios: ['São José do Belmonte'],
+    destaque: 'Rede municipal atendida em Pernambuco.',
+  },
+  RJ: {
+    sigla: 'RJ',
+    nome: 'Rio de Janeiro',
+    regiao: 'Sudeste',
+    active: true,
+    contratos: 2,
+    municipiosAtendidos: 2,
+    destaque: 'Dois municípios atendidos no Rio de Janeiro.',
   },
 };

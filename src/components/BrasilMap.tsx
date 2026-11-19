@@ -272,7 +272,7 @@ export const BrasilMap: React.FC<BrasilMapProps> = ({
             <div className="mt-1 space-y-0.5">
               <div className="text-emerald-300 font-semibold text-[13px] tabular-nums">
                 {CONTRATOS_ESTADOS_ESTIMADOS ? 'cerca de ' : ''}
-                {hoveredState.data.contratos.toLocaleString('pt-BR')} contratos
+                {hoveredState.data.contratos.toLocaleString('pt-BR')} {hoveredState.data.contratos === 1 ? 'contrato' : 'contratos'}
               </div>
               {hoveredState.sigla === 'BA' && (
                 <div className="text-amber-300 font-semibold text-[11px] mt-1 flex items-center gap-1">
