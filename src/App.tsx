@@ -1,25 +1,41 @@
-import { useState } from 'react';
+import { lazy, Suspense, useCallback, useState } from 'react';
 import { Header } from './components/Header';
 import { BahiaMap } from './components/BahiaMap';
-import { BrasilMap } from './components/BrasilMap';
-import { MetricsCard } from './components/MetricsCard';
-import { AudioDemandModal } from './components/AudioDemandModal';
-import { StateModal } from './components/StateModal';
-import { ProposalModal } from './components/ProposalModal';
-import type { MunicipalityCase, StateCase } from './data/educareData';
-import { Sparkles, MapPin } from 'lucide-react';
+import { MetricsCard, MunicipalitySearch } from './components/MetricsCard';
+import { WhatsAppQR } from './components/WhatsAppQR';
+import { MunicipioPanel } from './components/MunicipioPanel';
+import { BAHIA_MUNICIPALITIES_DATA, type MunicipalityCase, type StateCase } from './data/educareData';
 import { sounds } from './utils/audio';
+
+// Carregados só quando usados: deixam a abertura do app mais leve
+const BrasilMap = lazy(() => import('./components/BrasilMap').then((m) => ({ default: m.BrasilMap })));
+const StateModal = lazy(() => import('./components/StateModal').then((m) => ({ default: m.StateModal })));
+const ProposalModal = lazy(() => import('./components/ProposalModal').then((m) => ({ default: m.ProposalModal })));
+
+const STEPS_BAHIA = [
+  { title: 'Toque no município', text: 'Pontos azuis são redes parceiras' },
+  { title: 'Veja os contratos', text: 'Quantos fornecemos naquela rede' },
+  { title: 'Fale com a Vitória', text: 'Leia o QR code do WhatsApp' },
+];
+
+const STEPS_BRASIL = [
+  { title: 'Toque no estado', text: 'Em azul, estados com projetos' },
+  { title: 'Veja os números', text: 'Municípios e alunos atendidos' },
+  { title: 'Abra a Bahia', text: 'Os 42 municípios baianos' },
+];
+
+const MapFallback = () => (
+  <div className="w-full h-full min-h-[520px] rounded-3xl border border-slate-200 bg-white animate-pulse" />
+);
 
 export function App() {
   const [viewMode, setViewMode] = useState<'bahia' | 'brasil'>('bahia');
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
 
-  // Selected entities
   const [selectedMunicipality, setSelectedMunicipality] = useState<MunicipalityCase | null>(null);
   const [selectedState, setSelectedState] = useState<StateCase | null>(null);
 
-  // Proposal Modal
   const [isProposalOpen, setIsProposalOpen] = useState(false);
   const [proposalMunicipality, setProposalMunicipality] = useState<MunicipalityCase | null>(null);
 
@@ -29,138 +45,145 @@ export function App() {
     setIsProposalOpen(true);
   };
 
+  const selectMunicipality = useCallback((m: MunicipalityCase | null) => {
+    sounds.playTap();
+    setSelectedMunicipality(m);
+  }, []);
+
+  const steps = viewMode === 'bahia' ? STEPS_BAHIA : STEPS_BRASIL;
+
   return (
-    <div className="min-h-screen bg-slate-100/70 flex flex-col font-sans text-slate-800">
-      {/* Top Navigation */}
+    <div className="min-h-dvh lg:h-dvh lg:overflow-hidden bg-cream flex flex-col text-slate-900">
       <Header
         viewMode={viewMode}
         onViewModeChange={setViewMode}
         onOpenProposal={() => handleOpenProposal(null)}
       />
 
-      {/* Main Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-6 flex flex-col gap-5">
-        {/* Top Interactive Announcement Banner */}
-        <div className="bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white px-4 sm:px-6 py-3.5 rounded-3xl shadow-elevated flex flex-col sm:flex-row items-center justify-between gap-3 text-xs sm:text-sm border border-blue-800/60">
-          <div className="flex items-center gap-3">
-            <span className="p-2 bg-orange-500 text-white rounded-xl shadow-xs shrink-0">
-              <Sparkles className="w-4 h-4" />
-            </span>
-            <span>
-              <strong className="text-orange-400">Undime Bahia 2026:</strong> Toque no município no mapa para abrir na hora o <strong className="text-white">Folder dos Livros/Materiais</strong>, o <strong className="text-white">Vídeo do Case</strong> e a <strong className="text-white">Data de Fornecimento</strong>.
-            </span>
+      {/* Faixa institucional: título da tela e como usar */}
+      <section className="band-deep shrink-0">
+        <div className="max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-8 py-5 lg:py-3 flex flex-col lg:flex-row lg:items-center gap-4 lg:gap-8">
+          <div className="lg:shrink-0">
+            <h1 className="text-3xl sm:text-4xl lg:text-[2rem] xl:text-4xl leading-[1.08] text-white text-balance">
+              {viewMode === 'bahia' ? 'Presença nos municípios baianos' : 'Presença no território nacional'}
+            </h1>
+            <svg aria-hidden="true" viewBox="0 0 220 12" className="mt-1.5 w-44 h-2.5 text-orange-400" fill="none">
+              <path d="M2 9C60 2 150 1 218 6" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
+            </svg>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              onClick={() => handleOpenProposal(null)}
-              className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold backdrop-blur-md transition-all border border-white/20 active:scale-95"
-            >
-              Simulador para Secretários
-            </button>
-          </div>
+          <ol className="lg:ml-auto grid sm:grid-cols-3 gap-2" aria-label="Como usar">
+            {steps.map((s, i) => (
+              <li
+                key={s.title}
+                className="flex gap-2.5 items-center rounded-2xl bg-white/[0.07] ring-1 ring-white/15 px-3 py-2"
+              >
+                <span className="shrink-0 w-7 h-7 rounded-full bg-amber-400 text-blue-950 font-heading font-semibold flex items-center justify-center tabular-nums">
+                  {i + 1}
+                </span>
+                <span className="min-w-0">
+                  <span className="block font-semibold text-white text-sm leading-tight">{s.title}</span>
+                  <span className="block text-xs text-blue-100 leading-snug mt-0.5 lg:hidden 2xl:block">{s.text}</span>
+                </span>
+              </li>
+            ))}
+          </ol>
         </div>
+      </section>
 
-        {/* 2-Column Split: Interactive Map & Live Metrics */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          {/* Left Column: Interactive Map (7 cols) */}
-          <div className="lg:col-span-7 flex flex-col gap-2.5">
-            <div className="flex items-center justify-between px-2">
-              <div className="text-xs font-black text-slate-600 uppercase tracking-widest flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5 text-blue-700" />
-                <span>{viewMode === 'bahia' ? 'Território da Bahia • Malha Oficial IBGE' : 'Presença Nacional • Brasil'}</span>
-              </div>
-              <div className="text-xs text-slate-500 font-medium">
-                {viewMode === 'bahia' ? 'Toque em qualquer município para abrir o material' : '10 estados parceiros'}
-              </div>
-            </div>
-
+      {/*
+        Desktop e tablet deitado: tudo cabe em uma tela, sem rolar a página.
+        Mapa à esquerda; à direita: alcance e pilares, QR code e a consulta (lista com rolagem interna).
+      */}
+      <main className="flex-1 lg:min-h-0 max-w-[1680px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 lg:py-4">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-4 xl:gap-5 lg:h-full">
+          <div className="lg:col-span-6 xl:col-span-7 lg:min-h-0 h-[520px] sm:h-[620px] lg:h-full">
             {viewMode === 'bahia' ? (
               <BahiaMap
                 selectedMunicipalityId={selectedMunicipality ? selectedMunicipality.id : null}
-                onSelectMunicipality={(m) => {
-                  sounds.playTap();
-                  setSelectedMunicipality(m);
-                }}
+                onSelectMunicipality={selectMunicipality}
                 searchTerm={searchTerm}
               />
             ) : (
-              <BrasilMap
-                selectedStateSigla={selectedState ? selectedState.sigla : null}
-                onSelectState={(s) => setSelectedState(s)}
-                onDrillDownBahia={() => {
-                  sounds.playTap();
-                  setViewMode('bahia');
-                }}
-              />
+              <Suspense fallback={<MapFallback />}>
+                <BrasilMap
+                  selectedStateSigla={selectedState ? selectedState.sigla : null}
+                  onSelectState={(s) => setSelectedState(s)}
+                  onDrillDownBahia={() => {
+                    sounds.playTap();
+                    setViewMode('bahia');
+                  }}
+                />
+              </Suspense>
             )}
           </div>
 
-          {/* Right Column: Slide Metrics Card & Instant Search (5 cols) */}
-          <div className="lg:col-span-5">
-            <MetricsCard
-              viewMode={viewMode}
-              searchTerm={searchTerm}
-              onSearchChange={setSearchTerm}
-              onSelectMunicipality={(m) => {
-                sounds.playTap();
-                setSelectedMunicipality(m);
-              }}
-              onSelectState={(s) => setSelectedState(s)}
-              activeFilter={activeFilter}
-              onFilterChange={setActiveFilter}
-              onOpenProposal={() => handleOpenProposal(null)}
-            />
+          <div className="lg:col-span-6 xl:col-span-5 lg:min-h-0 flex flex-col gap-5 lg:gap-4 xl:gap-5">
+            <MetricsCard viewMode={viewMode} onOpenProposal={() => handleOpenProposal(null)} />
+            <WhatsAppQR />
+            <div className="lg:flex-1 lg:min-h-0 flex flex-col">
+              <MunicipalitySearch
+                viewMode={viewMode}
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+                onSelectMunicipality={selectMunicipality}
+                onSelectState={(s) => setSelectedState(s)}
+                activeFilter={activeFilter}
+                onFilterChange={setActiveFilter}
+              />
+            </div>
           </div>
         </div>
       </main>
 
-      {/* Modern Footer with Organic Educare Brand Arc */}
-      <footer className="mt-auto bg-white border-t border-slate-200/90 pt-6 pb-8 relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-64 h-2.5 bg-gradient-to-r from-blue-900 via-blue-600 to-sky-400 rounded-r-full"></div>
-        <div className="absolute top-0 right-0 w-64 h-2.5 bg-gradient-to-l from-emerald-600 via-green-500 to-lime-400 rounded-l-full"></div>
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-          <div className="flex items-center gap-2.5">
-            <div className="w-2.5 h-2.5 rounded-full bg-blue-700"></div>
-            <span className="font-extrabold text-blue-950 text-sm">Grupo Educare</span>
-            <span>• Soluções Didáticas e Consultoria Pedagógica para Redes Municipais de Ensino</span>
-          </div>
-
-          <div className="flex items-center gap-3 text-slate-400 text-xs">
-            <span className="font-bold text-slate-600">Undime Bahia 2026</span>
-            <span>•</span>
-            <span>Aplicação Interativa para Estande</span>
-          </div>
+      {/* Rodapé só em telas pequenas (no desktop a marca já está no topo) */}
+      <footer className="lg:hidden mt-auto bg-white border-t border-slate-200 relative">
+        <div aria-hidden="true" className="absolute inset-x-0 top-0 h-1.5 flex">
+          <span className="flex-[3] bg-blue-600" />
+          <span className="flex-[2] bg-orange-500" />
+          <span className="flex-1 bg-emerald-500" />
+        </div>
+        <div className="px-4 sm:px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-slate-600">
+          <span className="flex items-center gap-3">
+            <img src="/brand/educare-simbolo.png" alt="" className="h-8 w-auto" draggable={false} />
+            <strong className="font-semibold text-blue-950">Grupo Educare Editora</strong>
+          </span>
+          <span className="text-slate-500">Undime Bahia 2026 · Aplicação do estande</span>
         </div>
       </footer>
+      <div aria-hidden="true" className="hidden lg:flex shrink-0 h-1.5">
+        <span className="flex-[3] bg-blue-600" />
+        <span className="flex-[2] bg-orange-500" />
+        <span className="flex-1 bg-emerald-500" />
+      </div>
 
-      {/* Direct Audio-Demanded Modal: Folder + Video + Date of Supply */}
       {selectedMunicipality && (
-        <AudioDemandModal
+        <MunicipioPanel
           municipality={selectedMunicipality}
+          isPartner={!!BAHIA_MUNICIPALITIES_DATA[selectedMunicipality.id]}
           onClose={() => setSelectedMunicipality(null)}
-          onOpenProposal={(m) => handleOpenProposal(m)}
         />
       )}
 
-      {/* State Modal (Brasil Mode) */}
-      <StateModal
-        state={selectedState}
-        onClose={() => setSelectedState(null)}
-        onDrillDownBahia={() => {
-          setSelectedState(null);
-          setViewMode('bahia');
-        }}
-      />
+      <Suspense fallback={null}>
+        {selectedState && (
+          <StateModal
+            state={selectedState}
+            onClose={() => setSelectedState(null)}
+            onDrillDownBahia={() => {
+              setSelectedState(null);
+              setViewMode('bahia');
+            }}
+          />
+        )}
 
-      {/* Real-time Proposal Configurator Modal */}
-      {isProposalOpen && (
-        <ProposalModal
-          initialMunicipality={proposalMunicipality}
-          onClose={() => setIsProposalOpen(false)}
-        />
-      )}
+        {isProposalOpen && (
+          <ProposalModal
+            initialMunicipality={proposalMunicipality}
+            onClose={() => setIsProposalOpen(false)}
+          />
+        )}
+      </Suspense>
     </div>
   );
 }

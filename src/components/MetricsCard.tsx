@@ -1,17 +1,5 @@
-import React from 'react';
-import {
-  MapPin,
-  BookOpen,
-  Users,
-  Target,
-  Search,
-  ChevronRight,
-  Sparkles,
-  School,
-  GraduationCap,
-  TrendingUp,
-  X,
-} from 'lucide-react';
+import React, { useMemo } from 'react';
+import { BookOpen, Users, Target, Search, ChevronRight, X } from 'lucide-react';
 import {
   BAHIA_MUNICIPALITIES_DATA,
   type MunicipalityCase,
@@ -20,7 +8,107 @@ import {
 } from '../data/educareData';
 import { sounds } from '../utils/audio';
 
+const MUNICIPALITIES = Object.values(BAHIA_MUNICIPALITIES_DATA).sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+const STATES = Object.values(BRASIL_STATES_DATA);
+
+const PILLARS = [
+  {
+    Icon: BookOpen,
+    title: 'Projetos educacionais',
+    text: 'Coleções didáticas, alfabetização na idade certa e kits de robótica maker.',
+    tone: 'bg-blue-100 text-blue-700',
+  },
+  {
+    Icon: Users,
+    title: 'Diálogo com gestores',
+    text: 'Assessoria contínua aos secretários e formação em serviço para docentes.',
+    tone: 'bg-orange-100 text-orange-600',
+  },
+  {
+    Icon: Target,
+    title: 'Propostas alinhadas',
+    text: 'Soluções sob medida para as metas do PME e para alavancar o IDEB.',
+    tone: 'bg-emerald-100 text-emerald-700',
+  },
+];
+
+const FILTERS = [
+  { id: 'all', label: 'Todos' },
+  { id: 'alfa', label: 'Alfabetização' },
+  { id: 'robotica', label: 'Robótica maker' },
+  { id: 'socio', label: 'Socioemocional' },
+  { id: 'gestao', label: 'Gestão e SAEB' },
+];
+
+const PROJECT_BY_FILTER: Record<string, string> = {
+  alfa: 'alfa-educa',
+  robotica: 'robotica-maker',
+  socio: 'socioemocional-viver',
+  gestao: 'gestao-redes',
+};
+
+/* ---------------------------------------------------------------
+   Alcance + pilares (o "slide" da Educare)
+   --------------------------------------------------------------- */
 interface MetricsCardProps {
+  viewMode: 'bahia' | 'brasil';
+  onOpenProposal: () => void;
+}
+
+export const MetricsCard: React.FC<MetricsCardProps> = ({ viewMode, onOpenProposal }) => {
+  const isBahia = viewMode === 'bahia';
+
+  return (
+    <section className="shrink-0 bg-white rounded-3xl border border-slate-200 shadow-elevated overflow-hidden">
+      <div className="flex items-end gap-3.5 px-5 xl:px-6 pt-4 pb-3 border-b border-slate-200">
+        <span className="font-heading font-semibold text-orange-500 text-5xl 2xl:text-6xl leading-[0.85] tabular-nums">
+          {isBahia ? '42' : '10+'}
+        </span>
+        <span className="pb-0.5 min-w-0">
+          <span className="block font-heading font-semibold text-xl xl:text-2xl text-blue-950 leading-tight">
+            {isBahia ? 'municípios alcançados na Bahia' : 'estados com presença Educare'}
+          </span>
+          <span className="block text-sm text-slate-600 tabular-nums">
+            310 mil+ alunos · 1.850+ escolas · 94% de alfabetização
+          </span>
+        </span>
+      </div>
+
+      <ul className="grid sm:grid-cols-3 gap-3 xl:gap-4 px-5 xl:px-6 py-3.5">
+        {PILLARS.map(({ Icon, title, text, tone }) => (
+          <li key={title} className="flex items-center [@media(min-height:960px)]:items-start gap-2.5">
+            <span className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${tone}`}>
+              <Icon className="w-[18px] h-[18px]" />
+            </span>
+            <span className="min-w-0">
+              <span className="block font-semibold text-[15px] text-slate-900 leading-tight">{title}</span>
+              {/* Descrição só aparece quando há altura sobrando */}
+              <span className="block lg:hidden [@media(min-height:960px)]:lg:block text-[13px] text-slate-600 mt-0.5 leading-snug">{text}</span>
+            </span>
+          </li>
+        ))}
+      </ul>
+
+      {/* No desktop o botão "Simular proposta" já fica no topo */}
+      <div className="px-5 pb-5 lg:hidden">
+        <button
+          onClick={() => {
+            sounds.playTap();
+            onOpenProposal();
+          }}
+          className="btn-yellow w-full h-12 rounded-2xl font-semibold text-[15px]"
+        >
+          Simular proposta para a minha rede
+        </button>
+      </div>
+    </section>
+  );
+};
+
+/* ---------------------------------------------------------------
+   Consulta rápida de municípios / estados
+   --------------------------------------------------------------- */
+interface MunicipalitySearchProps {
   viewMode: 'bahia' | 'brasil';
   searchTerm: string;
   onSearchChange: (val: string) => void;
@@ -28,10 +116,9 @@ interface MetricsCardProps {
   onSelectState: (s: StateCase) => void;
   activeFilter: string;
   onFilterChange: (filter: string) => void;
-  onOpenProposal: () => void;
 }
 
-export const MetricsCard: React.FC<MetricsCardProps> = ({
+export const MunicipalitySearch: React.FC<MunicipalitySearchProps> = ({
   viewMode,
   searchTerm,
   onSearchChange,
@@ -39,257 +126,141 @@ export const MetricsCard: React.FC<MetricsCardProps> = ({
   onSelectState,
   activeFilter,
   onFilterChange,
-  onOpenProposal,
 }) => {
-  const municipalitiesList = Object.values(BAHIA_MUNICIPALITIES_DATA);
-  const statesList = Object.values(BRASIL_STATES_DATA);
+  const isBahia = viewMode === 'bahia';
+  const term = searchTerm.trim().toLowerCase();
 
-  // Filter municipalities
-  const filteredMunicipalities = municipalitiesList.filter((m) => {
-    const matchesSearch =
-      m.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      m.region.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredMunicipalities = useMemo(
+    () =>
+      MUNICIPALITIES.filter((m) => {
+        if (term && !m.name.toLowerCase().includes(term) && !m.region.toLowerCase().includes(term)) return false;
+        const project = PROJECT_BY_FILTER[activeFilter];
+        return !project || m.primaryProject === project;
+      }),
+    [term, activeFilter],
+  );
 
-    if (!matchesSearch) return false;
-
-    if (activeFilter === 'all') return true;
-    if (activeFilter === 'alfa') return m.primaryProject === 'alfa-educa';
-    if (activeFilter === 'robotica') return m.primaryProject === 'robotica-maker';
-    if (activeFilter === 'socio') return m.primaryProject === 'socioemocional-viver';
-    if (activeFilter === 'gestao') return m.primaryProject === 'gestao-redes';
-    return true;
-  });
+  const filteredStates = useMemo(() => STATES.filter((s) => s.nome.toLowerCase().includes(term)), [term]);
 
   return (
-    <div className="flex flex-col gap-5 w-full">
-      {/* Primary Slide Showcase Card */}
-      <div className="bg-white rounded-3xl p-6 sm:p-7 shadow-elevated border border-slate-200/90 relative overflow-hidden transition-all duration-300">
-        {/* Subtle decorative geometry in top right */}
-        <div className="absolute top-0 right-0 w-44 h-44 bg-gradient-to-bl from-sky-100/60 via-blue-50/30 to-transparent rounded-bl-full pointer-events-none"></div>
+    <section
+      aria-labelledby="consulta-titulo"
+      className="bg-white rounded-3xl border border-slate-200 shadow-elevated p-4 xl:p-5 flex flex-col gap-3 lg:flex-1 lg:min-h-0 min-w-0"
+    >
+      <div className="flex items-center justify-between shrink-0">
+        <h2 id="consulta-titulo" className="text-lg text-blue-950">
+          {isBahia ? 'Consultar municípios' : 'Consultar estados'}
+        </h2>
+        <span className="text-xs font-semibold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-full tabular-nums">
+          {isBahia ? `${filteredMunicipalities.length} cidades` : `${filteredStates.length} estados`}
+        </span>
+      </div>
 
-        {/* Counter Hero Pill matching the exact graphic */}
-        <div className="flex items-center gap-4 border-2 border-blue-900/20 bg-gradient-to-r from-sky-50/70 via-blue-50/40 to-white p-4 sm:p-5 rounded-2xl shadow-xs">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-700 to-blue-900 text-white flex items-center justify-center shrink-0 shadow-md ring-4 ring-blue-100">
-            <MapPin className="w-8 h-8 text-white fill-white/20" />
-          </div>
-          <div>
-            <div className="text-4xl sm:text-5xl font-black text-orange-500 tracking-tight leading-none flex items-baseline gap-2">
-              {viewMode === 'bahia' ? '42' : '10+'}
-              <span className="text-2xl sm:text-3xl font-extrabold text-blue-950">
-                {viewMode === 'bahia' ? 'municípios' : 'estados'}
-              </span>
-            </div>
-            <div className="text-xs sm:text-sm font-black text-blue-900 tracking-wider uppercase mt-1">
-              {viewMode === 'bahia' ? 'alcançados na Bahia' : 'com presença nacional'}
-            </div>
-          </div>
-        </div>
-
-        {/* The 3 Educational Pillars */}
-        <div className="mt-6 space-y-4">
-          {/* Pillar 1 */}
-          <div className="flex items-start gap-3.5 group p-2 rounded-xl hover:bg-slate-50 transition-colors">
-            <div className="w-11 h-11 rounded-xl bg-blue-100 text-blue-800 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-200 shadow-xs">
-              <BookOpen className="w-5 h-5 text-blue-700" />
-            </div>
-            <div>
-              <div className="text-base font-extrabold text-slate-900 leading-snug">
-                Projetos educacionais
-              </div>
-              <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
-                Coleções didáticas estruturadas, alfabetização na idade certa e kits de robótica maker.
-              </p>
-            </div>
-          </div>
-
-          {/* Pillar 2 */}
-          <div className="flex items-start gap-3.5 group p-2 rounded-xl hover:bg-slate-50 transition-colors">
-            <div className="w-11 h-11 rounded-xl bg-orange-100 text-orange-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-200 shadow-xs">
-              <Users className="w-5 h-5 text-orange-600" />
-            </div>
-            <div>
-              <div className="text-base font-extrabold text-slate-900 leading-snug">
-                Diálogo com gestores
-              </div>
-              <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
-                Assessoria presencial contínua aos secretários e formação em serviço para os docentes.
-              </p>
-            </div>
-          </div>
-
-          {/* Pillar 3 */}
-          <div className="flex items-start gap-3.5 group p-2 rounded-xl hover:bg-slate-50 transition-colors">
-            <div className="w-11 h-11 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-200 shadow-xs">
-              <Target className="w-5 h-5 text-emerald-700" />
-            </div>
-            <div>
-              <div className="text-base font-extrabold text-slate-900 leading-snug">
-                Propostas alinhadas
-              </div>
-              <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
-                Soluções desenhadas sob medida para atender as metas do PME e alavancar o IDEB.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Live Stand CTA for Secretários & Prefeitos */}
-        <div className="mt-6 pt-5 border-t border-slate-100">
+      <div className="relative shrink-0">
+        <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+        <input
+          type="search"
+          value={searchTerm}
+          onChange={(e) => onSearchChange(e.target.value)}
+          placeholder={isBahia ? 'Buscar cidade ou região' : 'Buscar estado'}
+          aria-label={isBahia ? 'Buscar cidade ou região' : 'Buscar estado'}
+          className="w-full h-11 pl-10 pr-10 bg-slate-50 border border-slate-200 rounded-xl text-[15px] text-slate-900 placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:bg-white transition"
+        />
+        {searchTerm && (
           <button
-            onClick={() => {
-              sounds.playTap();
-              onOpenProposal();
-            }}
-            className="w-full py-3.5 px-4 bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-black text-xs uppercase tracking-wider rounded-2xl shadow-md hover:shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2"
+            onClick={() => onSearchChange('')}
+            className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100"
+            aria-label="Limpar busca"
           >
-            <Sparkles className="w-4 h-4 text-white" />
-            <span>Simular Proposta para Minha Rede</span>
+            <X className="w-4 h-4" />
           </button>
-        </div>
+        )}
       </div>
 
-      {/* Aggregate Impact Ticker */}
-      <div className="grid grid-cols-3 gap-2.5 bg-slate-900 text-white p-4 rounded-3xl shadow-elevated">
-        <div className="text-center p-1">
-          <div className="text-lg sm:text-xl font-black text-amber-400">310k+</div>
-          <div className="text-[10px] text-slate-400 uppercase font-semibold">Alunos na Bahia</div>
-        </div>
-        <div className="text-center p-1 border-x border-slate-800">
-          <div className="text-lg sm:text-xl font-black text-sky-400">1.850+</div>
-          <div className="text-[10px] text-slate-400 uppercase font-semibold">Escolas Públicas</div>
-        </div>
-        <div className="text-center p-1">
-          <div className="text-lg sm:text-xl font-black text-emerald-400">94%</div>
-          <div className="text-[10px] text-slate-400 uppercase font-semibold">Alfabetização</div>
-        </div>
-      </div>
-
-      {/* Instant Search and List for Vitória */}
-      <div className="bg-white rounded-3xl p-5 shadow-elevated border border-slate-200/90 space-y-3.5">
-        <div className="flex items-center justify-between">
-          <div className="text-xs font-black text-blue-950 uppercase tracking-wider flex items-center gap-1.5">
-            <Search className="w-4 h-4 text-blue-700" />
-            <span>Consultar Municípios</span>
-          </div>
-          <span className="text-[11px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
-            {viewMode === 'bahia' ? `${filteredMunicipalities.length} cidades` : `${statesList.length} estados`}
-          </span>
-        </div>
-
-        {/* Search Input */}
-        <div className="relative">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => onSearchChange(e.target.value)}
-            placeholder={
-              viewMode === 'bahia'
-                ? 'Buscar cidade (ex: Salvador, Barreiras, Conquista...)'
-                : 'Buscar estado...'
-            }
-            className="w-full pl-10 pr-9 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition-all"
-          />
-          {searchTerm && (
-            <button
-              onClick={() => onSearchChange('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          )}
-        </div>
-
-        {/* Filter Badges in Bahia View */}
-        {viewMode === 'bahia' && (
-          <div className="flex flex-wrap gap-1.5 text-[11px]">
-            {[
-              { id: 'all', label: `Todos (${municipalitiesList.length})` },
-              { id: 'alfa', label: 'Alfabetização' },
-              { id: 'robotica', label: 'Robótica Maker' },
-              { id: 'socio', label: 'Socioemocional' },
-              { id: 'gestao', label: 'Gestão/SAEB' },
-            ].map((f) => (
+      {isBahia && (
+        <div
+          className="flex gap-1.5 overflow-x-auto no-scrollbar shrink-0 -mx-4 px-4 xl:-mx-5 xl:px-5 [@media(max-height:880px)]:lg:hidden"
+          role="group"
+          aria-label="Filtrar por projeto"
+        >
+          {FILTERS.map((f) => {
+            const active = activeFilter === f.id;
+            return (
               <button
                 key={f.id}
+                aria-pressed={active}
                 onClick={() => {
                   sounds.playTap();
                   onFilterChange(f.id);
                 }}
-                className={`px-2.5 py-1 rounded-lg font-bold transition-all active:scale-95 ${
-                  activeFilter === f.id
-                    ? 'bg-blue-900 text-white shadow-xs'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                className={`h-8 px-3 rounded-full text-[13px] font-medium shrink-0 transition-colors ${
+                  active
+                    ? 'bg-blue-950 text-white'
+                    : 'bg-white text-slate-700 border border-slate-200 hover:border-blue-300 hover:text-blue-950'
                 }`}
               >
                 {f.label}
               </button>
-            ))}
-          </div>
-        )}
+            );
+          })}
+        </div>
+      )}
 
-        {/* City/State Scrollable List */}
-        <div className="max-h-60 overflow-y-auto space-y-1.5 pr-1">
-          {viewMode === 'bahia' ? (
-            filteredMunicipalities.length > 0 ? (
-              filteredMunicipalities.map((m) => (
+      {/* Lista com rolagem interna */}
+      <ul className="max-h-72 lg:max-h-none lg:flex-1 lg:min-h-0 overflow-y-auto overscroll-contain -mx-2 px-1 space-y-0.5">
+        {isBahia ? (
+          filteredMunicipalities.length > 0 ? (
+            filteredMunicipalities.map((m) => (
+              <li key={m.id}>
                 <button
-                  key={m.id}
-                  onClick={() => {
-                    sounds.playTap();
-                    onSelectMunicipality(m);
-                  }}
-                  className="w-full text-left p-3 rounded-2xl border border-slate-100 hover:border-blue-300 hover:bg-sky-50/80 transition-all flex items-center justify-between group active:scale-[0.98]"
+                  onClick={() => onSelectMunicipality(m)}
+                  className="w-full text-left px-3 py-2 rounded-xl hover:bg-blue-50 active:bg-blue-100 transition-colors flex items-center justify-between gap-3 group"
                 >
-                  <div className="flex items-center gap-3">
-                    <span className="w-2.5 h-2.5 rounded-full bg-blue-600 group-hover:scale-125 transition-transform"></span>
-                    <div>
-                      <div className="text-xs font-extrabold text-slate-900 group-hover:text-blue-950">
-                        {m.name}
-                      </div>
-                      <div className="text-[10px] text-slate-500">{m.region}</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-bold bg-blue-50 text-blue-700 px-2 py-0.5 rounded-md border border-blue-100">
-                      {m.studentsImpacted > 0 ? `${(m.studentsImpacted / 1000).toFixed(1)}k alunos` : 'Case'}
+                  <span className="flex items-center gap-3 min-w-0">
+                    <span className="w-2.5 h-2.5 rounded-full bg-blue-600 ring-4 ring-blue-100 shrink-0" />
+                    <span className="min-w-0">
+                      <span className="block text-[15px] font-semibold text-slate-900 truncate">{m.name}</span>
+                      <span className="block text-xs text-slate-500 truncate">{m.region}</span>
                     </span>
-                    <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-blue-700 group-hover:translate-x-0.5 transition-all" />
-                  </div>
+                  </span>
+                  <ChevronRight className="w-4 h-4 text-slate-400 shrink-0 group-hover:text-blue-700 group-hover:translate-x-0.5 transition" />
                 </button>
-              ))
-            ) : (
-              <div className="text-center py-6 text-slate-400 text-xs">
-                Nenhum município encontrado com "{searchTerm}".
-              </div>
-            )
+              </li>
+            ))
           ) : (
-            statesList.map((s) => (
+            <li className="text-center py-8 text-sm text-slate-500">
+              Nenhum município encontrado para “{searchTerm}”. Tente outro nome ou limpe os filtros.
+            </li>
+          )
+        ) : filteredStates.length > 0 ? (
+          filteredStates.map((s) => (
+            <li key={s.sigla}>
               <button
-                key={s.sigla}
                 onClick={() => {
                   sounds.playTap();
                   onSelectState(s);
                 }}
-                className="w-full text-left p-3 rounded-2xl border border-slate-100 hover:border-blue-300 hover:bg-sky-50/80 transition-all flex items-center justify-between group active:scale-[0.98]"
+                className="w-full text-left px-3 py-2 rounded-xl hover:bg-blue-50 active:bg-blue-100 transition-colors flex items-center justify-between gap-3 group"
               >
-                <div className="flex items-center gap-3">
-                  <span className="w-7 h-7 rounded-xl bg-blue-900 text-white text-xs font-black flex items-center justify-center">
+                <span className="flex items-center gap-3">
+                  <span className="w-9 h-9 rounded-xl bg-blue-950 text-white text-xs font-semibold flex items-center justify-center">
                     {s.sigla}
                   </span>
-                  <div>
-                    <div className="text-xs font-bold text-slate-900">{s.nome}</div>
-                    <div className="text-[10px] text-slate-500">
+                  <span>
+                    <span className="block text-[15px] font-semibold text-slate-900">{s.nome}</span>
+                    <span className="block text-xs text-slate-500 tabular-nums">
                       {s.municipiosAtendidos} municípios atendidos
-                    </div>
-                  </div>
-                </div>
-                <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-blue-700" />
+                    </span>
+                  </span>
+                </span>
+                <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-blue-700" />
               </button>
-            ))
-          )}
-        </div>
-      </div>
-    </div>
+            </li>
+          ))
+        ) : (
+          <li className="text-center py-8 text-sm text-slate-500">Nenhum estado encontrado.</li>
+        )}
+      </ul>
+    </section>
   );
 };

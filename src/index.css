@@ -1,110 +1,226 @@
 @import "tailwindcss";
 
+/* =========================================================
+   Design system — Grupo Educare
+   Fonte: site oficial (Ryan-voltz/editoraeducare) e logo.
+   - Azul da logo  #0085F0  → blue-500/600
+   - Azul profundo #0E2A6B  → blue-950  (faixas institucionais)
+   - Tinta da logo #233033  → slate-900 (texto)
+   - Amarelo       #FFC233  → amber-400 (CTA principal, com texto escuro)
+   - Creme         #FFF9F0  → cream     (fundo da página)
+   As escalas padrão do Tailwind são remapeadas para a identidade
+   Educare, assim todos os componentes herdam a mesma paleta.
+   ========================================================= */
+@theme {
+  --font-sans: 'Poppins', 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-heading: 'Fredoka', 'Baloo 2', 'Poppins', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --color-cream: #FFF9F0;
+  --color-sand: #FBEFD8;
+  --color-ink: #233033;
+
+  /* Azul Educare (logo #0085F0 → profundo #0E2A6B) */
+  --color-blue-50: oklch(0.972 0.016 245);
+  --color-blue-100: oklch(0.938 0.036 246);
+  --color-blue-200: oklch(0.88 0.07 247);
+  --color-blue-300: oklch(0.8 0.115 249);
+  --color-blue-400: oklch(0.71 0.16 251);
+  --color-blue-500: oklch(0.63 0.19 252);
+  --color-blue-600: oklch(0.57 0.19 255);
+  --color-blue-700: oklch(0.49 0.17 259);
+  --color-blue-800: oklch(0.41 0.15 262);
+  --color-blue-900: oklch(0.35 0.135 264);
+  --color-blue-950: oklch(0.285 0.115 265);
+
+  /* Céu = variações claras do azul da logo */
+  --color-sky-50: oklch(0.975 0.014 240);
+  --color-sky-100: oklch(0.945 0.03 242);
+  --color-sky-200: oklch(0.89 0.06 244);
+  --color-sky-300: oklch(0.82 0.1 246);
+  --color-sky-400: oklch(0.74 0.14 248);
+  --color-sky-600: oklch(0.6 0.17 252);
+  --color-sky-700: oklch(0.52 0.16 256);
+
+  --color-indigo-50: oklch(0.965 0.02 262);
+  --color-indigo-600: oklch(0.45 0.16 264);
+  --color-indigo-900: oklch(0.32 0.12 265);
+  --color-indigo-950: oklch(0.26 0.105 266);
+
+  /* Amarelo Educare (#FFC233) */
+  --color-amber-50: oklch(0.985 0.022 90);
+  --color-amber-100: oklch(0.962 0.05 88);
+  --color-amber-200: oklch(0.928 0.09 87);
+  --color-amber-300: oklch(0.89 0.13 85);
+  --color-amber-400: oklch(0.855 0.163 83);
+  --color-amber-500: oklch(0.82 0.168 78);
+  --color-amber-600: oklch(0.72 0.16 68);
+  --color-amber-800: oklch(0.5 0.11 60);
+  --color-amber-900: oklch(0.4 0.085 58);
+
+  /* Laranja = destaque quente, escuro o bastante para texto branco */
+  --color-orange-50: oklch(0.975 0.02 70);
+  --color-orange-100: oklch(0.945 0.045 68);
+  --color-orange-200: oklch(0.89 0.08 66);
+  --color-orange-300: oklch(0.82 0.12 62);
+  --color-orange-400: oklch(0.8 0.14 70);
+  --color-orange-500: oklch(0.64 0.175 50);
+  --color-orange-600: oklch(0.58 0.17 46);
+  --color-orange-700: oklch(0.5 0.15 44);
+  --color-orange-950: oklch(0.28 0.07 45);
+
+  /* Neutros frios levemente azulados, ancorados na tinta da logo */
+  --color-slate-50: oklch(0.982 0.004 250);
+  --color-slate-100: oklch(0.962 0.007 250);
+  --color-slate-200: oklch(0.918 0.011 250);
+  --color-slate-300: oklch(0.86 0.015 250);
+  --color-slate-400: oklch(0.7 0.02 250);
+  --color-slate-500: oklch(0.56 0.022 250);
+  --color-slate-600: oklch(0.46 0.022 245);
+  --color-slate-700: oklch(0.38 0.02 240);
+  --color-slate-800: oklch(0.31 0.018 235);
+  --color-slate-900: oklch(0.27 0.017 225);
+  --color-slate-950: oklch(0.2 0.03 260);
+
+  --shadow-xs: 0 1px 2px oklch(0.27 0.05 260 / 0.06);
+}
+
 @layer base {
-  :root {
-    --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  html {
+    -webkit-text-size-adjust: 100%;
   }
 
   body {
     font-family: var(--font-sans);
-    @apply bg-slate-100/80 text-slate-900 antialiased m-0 p-0;
+    background-color: var(--color-cream);
+    color: var(--color-slate-900);
+    margin: 0;
+    padding: 0;
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
 
   h1, h2, h3, h4, .font-heading {
     font-family: var(--font-heading);
-    letter-spacing: -0.025em;
+    letter-spacing: -0.01em;
+    font-weight: 600;
   }
 
-  /* Browser surface customization (Craft floor mandate) */
   ::selection {
-    background-color: #f97316;
-    color: #ffffff;
+    background-color: var(--color-amber-400);
+    color: var(--color-blue-950);
   }
 
   *:focus-visible {
-    outline: 2px solid #0284c7;
+    outline: 3px solid var(--color-amber-400);
     outline-offset: 2px;
+    border-radius: 8px;
+  }
+
+  button {
+    cursor: pointer;
   }
 }
 
-/* Custom smooth scrollbar */
-::-webkit-scrollbar {
-  width: 7px;
-  height: 7px;
-}
-::-webkit-scrollbar-track {
-  background: #f1f5f9;
-}
-::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 9999px;
-  border: 2px solid #f1f5f9;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+
+/* Faixa institucional azul profunda com o arco da logo */
+.band-deep {
+  background:
+    radial-gradient(120% 140% at 100% 0%, oklch(0.57 0.19 255 / 0.35), transparent 55%),
+    linear-gradient(180deg, #0E2A6B 0%, #143D8C 100%);
+  color: #fff;
 }
 
-/* Multi-layered Realistic Shadows */
+/* CTA principal: amarelo Educare com texto escuro */
+.btn-yellow {
+  background: var(--color-amber-400);
+  color: var(--color-blue-950);
+  box-shadow: 0 8px 20px -10px oklch(0.855 0.163 83 / 0.9);
+  transition: background-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+}
+.btn-yellow:hover {
+  background: var(--color-amber-500);
+  box-shadow: 0 10px 24px -10px oklch(0.82 0.168 78 / 0.95);
+}
+.btn-yellow:active {
+  transform: scale(0.97);
+}
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-slate-300);
+  border-radius: 9999px;
+  border: 2px solid var(--color-cream);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-slate-400);
+}
+
+/* Sombras em camadas, tingidas no azul profundo */
 .shadow-elevated {
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04), 0 8px 24px -4px rgba(8, 40, 77, 0.08), 0 20px 40px -12px rgba(8, 40, 77, 0.06);
+  box-shadow:
+    0 1px 2px oklch(0.285 0.115 265 / 0.05),
+    0 12px 32px -12px oklch(0.285 0.115 265 / 0.16);
 }
 
 .shadow-card-hover {
-  box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.05), 0 12px 30px -4px rgba(8, 40, 77, 0.12);
+  box-shadow:
+    0 2px 4px oklch(0.285 0.115 265 / 0.06),
+    0 18px 40px -16px oklch(0.285 0.115 265 / 0.24);
 }
 
 .shadow-modal {
-  box-shadow: 0 25px 60px -15px rgba(3, 27, 51, 0.35);
+  box-shadow: 0 30px 70px -20px oklch(0.2 0.08 265 / 0.45);
 }
 
-/* Pulse Animation for Map Nodes */
 @keyframes ring-pulse {
-  0% {
-    transform: scale(0.95);
-    opacity: 0.8;
-  }
-  50% {
-    transform: scale(1.6);
-    opacity: 0;
-  }
-  100% {
-    transform: scale(0.95);
-    opacity: 0;
-  }
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.6); opacity: 0; }
+  100% { transform: scale(0.95); opacity: 0; }
 }
-
 .animate-ring-pulse {
   animation: ring-pulse 2.2s cubic-bezier(0.24, 0, 0.38, 1) infinite;
 }
 
-/* Modal and Drawer backdrop animation */
 @keyframes fadeInBackdrop {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
-
 .animate-backdrop {
   animation: fadeInBackdrop 0.25s ease-out forwards;
 }
 
-/* Drawer slide */
 @keyframes slideDrawer {
-  from {
-    transform: translateX(100%);
-  }
-  to {
-    transform: translateX(0);
-  }
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
 }
-
 .animate-drawer {
   animation: slideDrawer 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes riseIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+.animate-rise {
+  animation: riseIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

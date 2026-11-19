@@ -13,6 +13,14 @@ Permite que a equipe de atendimento (Vitória e consultores pedagógicos) aprese
 
 ---
 
+## ✏️ Como atualizar os dados do estande
+
+- **WhatsApp da Vitória (QR code e botões):** `src/config/contato.ts` → `VITORIA_WHATSAPP` (só dígitos, com 55 + DDD).
+- **Contratos por município:** `src/data/contratos.ts`. Os números atuais são **fictícios** (dados de exemplo). Troque pelos números reais e mude `CONTRATOS_FICTICIOS` para `false` para tirar o aviso da tela.
+- **Logos:** `public/brand/` (Grupo Educare, vinda do site oficial, e Atacado GE).
+
+---
+
 ## 🌟 Funcionalidades Implementadas
 
 1. **Identidade Visual Fiel:**
